@@ -1,12 +1,19 @@
 package com.example.cs426_magicmusic
 
+import android.content.Context
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 
 class LibraryFragment : Fragment() {
+    interface ButtonListeners {
+        fun LibraryFragment_onMusicItemButton(musicItem: MusicItem)
+    }
+    var buttonListeners: ButtonListeners? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,7 +28,23 @@ class LibraryFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_library, container, false)
+        val view: View = inflater.inflate(R.layout.fragment_library, container, false)
+
+        val musicItemList: List<MusicItem> = listOf(
+            MusicItem("title 1", listOf("author 1", "author 2"), R.drawable.home_black_25_24, 0, 0),
+            MusicItem("title 2", listOf("author 3", "author 4"), R.drawable.home_black_25_24, 1, 1)
+        )
+        val musicListRecyclerView: RecyclerView = view.findViewById(R.id.library_music_list_recycleview)
+        val musicListAdapter = MusicItemListAdapter(musicItemList)
+        musicListRecyclerView.setAdapter(musicListAdapter)
+        musicListRecyclerView.setLayoutManager(LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false))
+        musicListAdapter.setOnButtonClick(object : MusicItemListAdapter.ButtonListeners {
+            override fun MusicItemListAdapter_onClick(musicItem: MusicItem) {
+                buttonListeners?.LibraryFragment_onMusicItemButton(musicItem)
+            }
+        })
+
+        return view
     }
 
     companion object {
@@ -33,5 +56,14 @@ class LibraryFragment : Fragment() {
 //                    putString(ARG_PARAM2, param2)
 //                }
             }
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        if (context is ButtonListeners) {
+            buttonListeners = context
+        } else {
+            throw RuntimeException("$context must implement TransportFlightsFragment.ButtonListeners")
+        }
     }
 }
