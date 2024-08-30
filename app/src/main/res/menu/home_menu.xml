@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+<item
+    android:id="@+id/navigation_library"
+    android:icon="@drawable/home_black_25_24"
+    android:title="Library"
+    tools:ignore="HardcodedText" />
+
+<item
+    android:id="@+id/navigation_search"
+    android:icon="@drawable/home_black_25_24"
+    android:title="Search"
+    tools:ignore="HardcodedText" />
+
+<item
+    android:id="@+id/navigation_generate_audio"
+    android:icon="@drawable/home_black_25_24"
+    android:title="Generate Audio"
+    tools:ignore="HardcodedText" />
+
+</menu>
