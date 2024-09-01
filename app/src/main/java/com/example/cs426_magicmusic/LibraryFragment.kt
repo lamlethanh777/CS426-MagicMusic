@@ -26,11 +26,11 @@ class LibraryFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
         val view: View = inflater.inflate(R.layout.fragment_library, container, false)
 
-        val musicItemList = MusicAdapter.queryAllMusic()
+        val musicItemList = MusicRepository.getMusicList("all")
         val musicListRecyclerView: RecyclerView = view.findViewById(R.id.library_music_list_recycleview)
         val musicListAdapter = MusicItemListAdapter(musicItemList)
         musicListRecyclerView.setAdapter(musicListAdapter)

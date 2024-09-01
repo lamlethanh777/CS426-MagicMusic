@@ -87,7 +87,21 @@ object MusicAdapter {
         }
         return MusicItem("NA", listOf("NA"), R.drawable.home_black_25_24, -1, -1)
     }
-//    fun queryAudio(audio_id: Int): AudioItem {}
+
+    /**
+     * return resourceId of the given audioId
+     */
+    fun queryAudio(audioId: Int): Int {
+        audio.forEach { audioRow ->
+            if (audioRow["id"]!!.toInt() == audioId) {
+                val resourceNameParts = audioRow["audio_resource"]!!.split(".")
+                val resourceType = resourceNameParts[0]
+                val resourceNameOnly = resourceNameParts[1]
+                return context.resources.getIdentifier(resourceNameOnly, resourceType, context.packageName)
+            }
+        }
+        return -1
+    }
 
     private fun readTsv(resId: Int): MutableList<Map<String, String>> {
         val inputStream: InputStream = this.context.resources.openRawResource(resId)

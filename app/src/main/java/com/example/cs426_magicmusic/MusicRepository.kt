@@ -10,7 +10,7 @@ object MusicRepository {
         return MusicAdapter.queryMusic(musicId)
     }
 
-//    fun getAudio(audioId: Int): AudioItem {
-//        return MusicAdapter.queryAudio(audioId)
-//    }
+    fun getAudio(audioId: Int): Int {
+        return MusicAdapter.queryAudio(audioId)
+    }
 }

@@ -14,6 +14,7 @@
         android:orientation="vertical">
 
         <ImageView
+            android:id="@+id/play_music_wall"
             android:layout_width="350dp"
             android:layout_height="350dp"
             android:layout_gravity="center_horizontal"
@@ -67,9 +68,43 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <com.google.android.material.slider.Slider
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content">
+
+            <androidx.appcompat.widget.AppCompatSeekBar
+                android:id="@+id/play_music_seekbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:max="60"
+                android:progress="10" />
+
+            <TextView
+                android:id="@+id/play_music_from"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/play_music_seekbar"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                android:text="0:00"
+                android:textAlignment="textStart"
+                tools:ignore="HardcodedText" />
+
+            <TextView
+                android:id="@+id/play_music_to"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/play_music_seekbar"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:text="1:00"
+                android:textAlignment="textEnd"
+                tools:ignore="HardcodedText" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -82,8 +117,10 @@
                 android:layout_height="40dp" />
 
             <ImageButton
+                android:id="@+id/play_music_play_pause"
                 android:layout_width="70dp"
-                android:layout_height="70dp" />
+                android:layout_height="70dp"
+                android:background="@drawable/paused_button" />
 
             <ImageButton
                 android:layout_width="40dp"
