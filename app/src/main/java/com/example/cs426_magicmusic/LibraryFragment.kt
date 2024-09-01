@@ -30,10 +30,7 @@ class LibraryFragment : Fragment() {
         // Inflate the layout for this fragment
         val view: View = inflater.inflate(R.layout.fragment_library, container, false)
 
-        val musicItemList: List<MusicItem> = listOf(
-            MusicItem("title 1", listOf("author 1", "author 2"), R.drawable.home_black_25_24, 0, 0),
-            MusicItem("title 2", listOf("author 3", "author 4"), R.drawable.home_black_25_24, 1, 1)
-        )
+        val musicItemList = MusicAdapter.queryAllMusic()
         val musicListRecyclerView: RecyclerView = view.findViewById(R.id.library_music_list_recycleview)
         val musicListAdapter = MusicItemListAdapter(musicItemList)
         musicListRecyclerView.setAdapter(musicListAdapter)
