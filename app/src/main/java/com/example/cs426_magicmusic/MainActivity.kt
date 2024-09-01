@@ -31,6 +31,7 @@ class MainActivity : AppCompatActivity(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        MusicAdapter.init(this)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_layout)) { v, insets ->
@@ -72,9 +73,8 @@ class MainActivity : AppCompatActivity(),
 
     private fun initial() {
         replaceFragment(LibraryFragment.newInstance())
-        setCurrentMusic(MusicItem("music title", listOf("author 1", "author 2"), R.drawable.home_black_25_24, 0, 0))
+        setCurrentMusic(MusicAdapter.queryAllMusic()[0])
     }
-
     private fun replaceFragment(fragment: Fragment) {
         supportFragmentManager.beginTransaction().replace(R.id.main_fragment, fragment).commit()
     }
