@@ -2,7 +2,6 @@ package com.example.cs426_magicmusic
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
@@ -29,9 +28,12 @@ class MainActivity : AppCompatActivity(),
     private lateinit var currentMusicPlayPause: ImageButton
     private lateinit var currentMusicLayout: ConstraintLayout
 
+    private var musicIsPlaying: Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         MusicAdapter.init(this)
+        PlayAudioManager.init(this)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_layout)) { v, insets ->
@@ -51,6 +53,9 @@ class MainActivity : AppCompatActivity(),
         currentMusicTitle = findViewById(R.id.current_music_title)
         currentMusicAuthor = findViewById(R.id.current_music_author)
         currentMusicPlayPause = findViewById(R.id.current_music_play_pause)
+        currentMusicPlayPause.setOnClickListener {
+            setPlayingState(!musicIsPlaying)
+        }
 
         val bottomNavigation: BottomNavigationView = findViewById(R.id.bottom_navigation)
         bottomNavigation.setOnItemSelectedListener { item ->
@@ -71,24 +76,41 @@ class MainActivity : AppCompatActivity(),
         initial()
     }
 
+    override fun onStart() {
+        super.onStart()
+        setPlayingState(PlayAudioManager.isPlaying())
+    }
+
     private fun initial() {
         replaceFragment(LibraryFragment.newInstance())
-        setCurrentMusic(MusicAdapter.queryAllMusic()[0])
+        setCurrentMusic(MusicRepository.getMusicList("all")[0], true)
     }
     private fun replaceFragment(fragment: Fragment) {
         supportFragmentManager.beginTransaction().replace(R.id.main_fragment, fragment).commit()
     }
 
-    private fun setCurrentMusic(musicItem: MusicItem) {
+    private fun setCurrentMusic(musicItem: MusicItem, isInitial: Boolean = false) {
         currentMusicItem = musicItem
         currentMusicIcon.setBackgroundResource(musicItem.icon)
         currentMusicTitle.text = musicItem.title
         currentMusicAuthor.text = musicItem.author.joinToString(", ")
-//        TODO("current music play pause state is not defined")
-        // currentMusicPlayPause
+        PlayAudioManager.setResource(MusicRepository.getAudio(musicItem.audioId))
+        setPlayingState(!isInitial)
     }
 
-    public fun getCurrentMusic() : MusicItem {
+    fun getCurrentMusic() : MusicItem {
         return currentMusicItem
+    }
+
+    private fun setPlayingState(state: Boolean) {
+        musicIsPlaying = state
+        if (state) {
+            PlayAudioManager.play()
+            currentMusicPlayPause.setBackgroundResource(R.drawable.played_button)
+        }
+        else {
+            PlayAudioManager.pause()
+            currentMusicPlayPause.setBackgroundResource(R.drawable.paused_button)
+        }
     }
 }
