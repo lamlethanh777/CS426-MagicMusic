@@ -1,7 +1,8 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".GenerateAudioFragment">
 
     <LinearLayout
@@ -32,32 +33,55 @@
             android:layout_height="wrap_content"
             android:text="Instrumental"
             android:paddingVertical="10pt"
-            tools:ignore="TouchTargetSizeCheck" />
+            tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
 
-        <Button
-            android:id="@+id/generateButton"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Generate" />
+            android:orientation="horizontal"
+            android:layout_marginVertical="5dp">
 
-        <Button
-            android:id="@+id/getButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Get" />
+            <!-- Left-aligned Button -->
+            <Button
+                android:id="@+id/limitButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Limit" />
 
-        <Button
-            android:id="@+id/limitButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Get Limit" />
+            <!-- Space to push second button to the center -->
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <!-- Center-aligned Button -->
+            <Button
+                android:id="@+id/getButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Get" />
+
+            <!-- Space to push third button to the right -->
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <!-- Right-aligned Button -->
+            <Button
+                android:id="@+id/generateButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Generate" />
+
+        </LinearLayout>
 
         <TextView
             android:id="@+id/statusText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text=""
-            android:visibility="gone"/>
+            android:visibility="visible"/>
 
         <ProgressBar
             android:id="@+id/progressBar"
@@ -66,29 +90,6 @@
             android:layout_height="wrap_content"
             android:visibility="gone"/>
 
-        <!-- Save Button to save the file with user input -->
-        <Button
-            android:id="@+id/saveButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Save Music"
-            android:visibility="gone" />
-
-        <!-- TextView for renaming the file -->
-        <TextView
-            android:id="@+id/renameTextView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Enter new file name"
-            android:visibility="gone"/>
-
-        <!-- EditText for entering the new name -->
-        <EditText
-            android:id="@+id/renameEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="New file name"
-            android:visibility="gone"/>
 
         <!-- Play Button -->
         <Button
@@ -107,4 +108,16 @@
 
 
     </LinearLayout>
-</FrameLayout>
+
+    <Button
+        android:id="@+id/newButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+
+        android:text="New task" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
