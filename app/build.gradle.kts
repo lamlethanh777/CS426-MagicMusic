@@ -49,4 +49,7 @@ dependencies {
     //for okhttp - deploy AI
     implementation("com.squareup.okhttp3:okhttp:4.9.1")
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.1")
+
+    //for viewModelScope
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1")
 }

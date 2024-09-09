@@ -5,33 +5,48 @@ import android.util.Log
 import android.view.View
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.cs426_magicmusic.GenerateAudioFragment.Companion.urlPrefixArray
-import kotlinx.coroutines.*
-import okhttp3.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
+
 class GenerateAudioViewModel : ViewModel() {
+    private val maxTrack = 2
 
     val progress = MutableLiveData<Int>()
     val statusText = MutableLiveData<String>()
-    val audioFilePath = MutableLiveData<String?>()
+    val userInputText = MutableLiveData<String>()
 
     // Visibility states
     val playButtonVisibility = MutableLiveData<Int>()
+    val swapButtonVisibility = MutableLiveData<Int>()
     val progressBarVisibility = MutableLiveData<Int>()
     val statusTextVisibility = MutableLiveData<Int>()
     val toastMessage = MutableLiveData<String>()
-    val userInputText = MutableLiveData<String>()
 
     // Input field state
 
-    private var totalDownloaded: Int = 0
+    var totalDownloaded: Int = 0 // Number of audios completely downloaded
+    var totalGenerating: Int = 0 // Number of audios successfully posted
+    private var progressJob: Job? = null
+
+    private val REQUEST_WRITE_PERMISSION_CODE = 1001
+
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(120, TimeUnit.SECONDS)
@@ -39,15 +54,24 @@ class GenerateAudioViewModel : ViewModel() {
         .readTimeout(120, TimeUnit.SECONDS)
         .build()
 
-    init {
+    fun resetViewModelState() {
         progress.value = 0
         statusText.value = ""
         userInputText.value = ""
 
-        // Initialize visibility states
+        playButtonVisibility.value = View.VISIBLE
+        swapButtonVisibility.value = View.VISIBLE
         progressBarVisibility.value = View.GONE
         statusTextVisibility.value = View.VISIBLE
-        playButtonVisibility.value = View.GONE
+        toastMessage.value = ""
+
+        totalDownloaded = 0
+        totalGenerating = 0
+        resetProgress()
+    }
+
+    init {
+        resetViewModelState()
     }
 
     // Function for POST requests
@@ -178,13 +202,15 @@ class GenerateAudioViewModel : ViewModel() {
 
         // Proceed only if a valid URL prefix is found
         if (urlPrefix.isNotEmpty()) {
+            resetProgress()
             updateProgress()
-
-            val job0 = CoroutineScope(Dispatchers.IO).async {
+            totalDownloaded = 0
+            totalGenerating = 0
+            val job0 = viewModelScope.async(Dispatchers.IO) {
                 fetchHistoryRecordsByIndex(urlPrefix, 0)
             }
 
-            val job1 = CoroutineScope(Dispatchers.IO).async {
+            val job1 = viewModelScope.async(Dispatchers.IO) {
                 fetchHistoryRecordsByIndex(urlPrefix, 1)
             }
         } else {
@@ -195,7 +221,6 @@ class GenerateAudioViewModel : ViewModel() {
 
     private suspend fun fetchHistoryRecordsByIndex(urlPrefix: String = "", index: Int = 0) {
         val url = "$urlPrefix/api/get"
-        triggerToast("fetch_{$index}")
         var audioUrl: String? = null
         var lyricUrl: String?
         var title: String?
@@ -244,7 +269,7 @@ class GenerateAudioViewModel : ViewModel() {
                 val jsonArray = JSONArray(it)
                 // Get the last item in the array (most recent record)
                 if (jsonArray.length() > index) {
-                    val title = jsonArray.getJSONObject(index).getString("title") + " - v${index+1}"
+                    val title = jsonArray.getJSONObject(index).getString("title")
                     return title
                 }
             }
@@ -271,31 +296,6 @@ class GenerateAudioViewModel : ViewModel() {
         return null
     }
 
-    private fun downloadLyric(fileUrl: String?, index: Int = 0, title:String = "") {
-        // Replacing '\n' in the lyrics string with actual new line characters
-        val formattedLyric = fileUrl
-            ?.replace("\\n", System.lineSeparator())  // Replace \n with a single new line
-            ?.replace("[", System.lineSeparator() + "[")  // Replace \n[ with double new line and [
-
-
-
-        // Creating the file name using the index
-        val fileName = "${title}_lyric.txt"
-        val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName)
-
-        try {
-            // Writing the formatted lyrics into the file
-            if (formattedLyric != null) {
-                file.writeText(formattedLyric)
-            }
-            // Optional: You can provide feedback that the file was saved successfully
-            println("File saved successfully at: ${file.absolutePath}")
-        } catch (e: IOException) {
-            // Handle any errors during file writing
-            e.printStackTrace()
-        }
-    }
-
     private fun extractAudioUrlByIndex(jsonResponse: String?, index: Int = 0): String? {
         Log.e("extractAudioUrl", "extract index_${index}")
         try {
@@ -314,7 +314,38 @@ class GenerateAudioViewModel : ViewModel() {
     }
 
 
-    fun downloadAudio(fileUrl: String, index: Int = 0, title:String = "") {
+    private fun downloadLyric(fileUrl: String?, index: Int = 0, title:String = "") {
+        // Replacing '\n' in the lyrics string with actual new line characters
+        val formattedLyric = fileUrl
+            ?.replace("\\n", System.lineSeparator())  // Replace \n with a single new line
+            ?.replace("[", System.lineSeparator() + "[")  // Replace \n[ with double new line and [
+
+
+
+        // Creating the file name using the index
+        val fileName = "${title} - v${index+1}.txt"
+        val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val musicFolder = File(downloadsDir, "magicmusic/lyric")
+        if (!musicFolder.exists()) {
+            musicFolder.mkdirs()  // Create the directory if it doesn't exist
+        }
+        val file = File(musicFolder, fileName)
+
+        try {
+            // Writing the formatted lyrics into the file
+            if (formattedLyric != null) {
+                val contentToWrite = "$title${System.lineSeparator()}${formattedLyric ?: ""}"
+                file.writeText(contentToWrite)
+            }
+            // Optional: You can provide feedback that the file was saved successfully
+            println("File saved successfully at: ${file.absolutePath}")
+        } catch (e: IOException) {
+            // Handle any errors during file writing
+            e.printStackTrace()
+        }
+    }
+
+    private fun downloadAudio(fileUrl: String, index: Int = 0, title:String = "") {
         statusText.postValue("Preparing_${index} to download audio file...")
 
         Log.e("Prepare_${index} downloading", fileUrl)
@@ -322,38 +353,53 @@ class GenerateAudioViewModel : ViewModel() {
         val client = OkHttpClient()
         val request = Request.Builder().url(fileUrl).build()
 
-        CoroutineScope(Dispatchers.IO).launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val response = client.newCall(request).execute()  // Synchronous call in background thread
                 if (response.isSuccessful) {
-                    val fileName = "${title}.mp4"
-                    val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName)
+                    val fileName = "${title} - v${index+1} ~ loading...mp3"
+                    val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                    val musicFolder = File(downloadsDir, "magicmusic/audio")
 
-                    // Write the file
+                    if (!musicFolder.exists()) {
+                        musicFolder.mkdirs()  // Create the directory if it doesn't exist
+                    }
+                    val file = File(musicFolder, fileName)
+
+                    triggerToast("Generating: $fileName")
+                    totalGenerating += 1
+                    if (totalGenerating == maxTrack) {
+                        playButtonVisibility.postValue(View.VISIBLE)
+                        swapButtonVisibility.postValue(View.VISIBLE)
+                    }
+
                     response.body?.byteStream()?.use { input ->
                         file.outputStream().use { output ->
                             input.copyTo(output)
                         }
                     }
+                    triggerToast("Completed: $fileName")
 
-                    audioFilePath.postValue(file.absolutePath)
+                    val renamedFile = File(musicFolder, "${title} - v${index+1}.mp3")
+                    file.renameTo(renamedFile)
 
                     // Update UI when download is done
                     withContext(Dispatchers.Main) {
-                        progressBarVisibility.postValue(View.GONE)
                         totalDownloaded += 1
-                        statusText.postValue("${totalDownloaded}/2 files downloaded successfully: ${file.absolutePath}")
-                        playButtonVisibility.postValue(View.VISIBLE)
+                        if (totalDownloaded == maxTrack) {
+                            resetProgress()
+                        }
+                        statusText.postValue("${totalDownloaded}/${maxTrack.toString()} files downloaded successfully: ${renamedFile.absolutePath}")
                     }
                 } else {
                     // Update UI when response is unsuccessful
-                    progressBarVisibility.postValue(View.GONE)
+                    resetProgress()
                     statusText.postValue("Failed to download file_${index}: ${response.code}")
                 }
             } catch (e: IOException) {
                 // Handle failure to download the file
                 withContext(Dispatchers.Main) {
-                    progressBarVisibility.postValue(View.GONE)
+                    resetProgress()
                     statusText.postValue("Failed to download file_${index}")
                 }
                 Log.e("GenerateAudioFragment", "File_${index} download failed", e)
@@ -362,16 +408,23 @@ class GenerateAudioViewModel : ViewModel() {
     }
 
     fun updateProgress() {
-        CoroutineScope(Dispatchers.Main).launch {
+        progressJob = viewModelScope.launch(Dispatchers.Main) {
             progressBarVisibility.postValue(View.VISIBLE)
-            for (i in 1..100) {
-                delay(1200) // 120 seconds = 1200ms for each percent
-                Log.e("progress", "$i")
-                progress.postValue(i)
-
-                if (i == 100) progressBarVisibility.postValue(View.GONE)
+            while (progress.value!! < 100) {
+                val i = progress.value
+                if (i != null) {
+                    progress.postValue(i + 1)
+                }
+                delay(1500)
             }
-
+            progressBarVisibility.postValue(View.GONE)
+            progress.value = 0
         }
+    }
+
+    fun resetProgress() {
+        progressBarVisibility.postValue(View.GONE)
+        progressJob?.cancel()
+        progress.value = 0
     }
 }

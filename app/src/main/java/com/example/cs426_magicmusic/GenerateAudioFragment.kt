@@ -1,8 +1,10 @@
 package com.example.cs426_magicmusic
 
 import android.app.AlertDialog
+import android.graphics.drawable.Drawable
 import android.media.MediaPlayer
 import android.os.Bundle
+import android.os.Environment
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -11,6 +13,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.ProgressBar
 import android.widget.SeekBar
 import android.widget.Switch
@@ -18,9 +21,16 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileInputStream
+import java.io.InputStreamReader
+import java.nio.charset.Charset
 
 class GenerateAudioFragment : Fragment() {
 
@@ -29,15 +39,19 @@ class GenerateAudioFragment : Fragment() {
     private lateinit var getButton: Button
     private lateinit var limitButton: Button
     private lateinit var instrumentalSwitch: Switch
+    private lateinit var lyricSwitch: Switch
     private lateinit var statusText: TextView
     private lateinit var progressBar: ProgressBar
-    private lateinit var playButton: Button
     private lateinit var newButton: Button
+    private lateinit var playButton: ImageButton
+    private lateinit var swapButton: ImageButton
     private lateinit var seekBar: SeekBar
     private lateinit var inputText: EditText
+    private lateinit var lyricTextView: TextView
 
+    private var playSongJob: Job? = null
     private var mediaPlayer: MediaPlayer? = null
-    private var audioFilePath: String? = null
+    private var audioFileIndex: Int = 0
     private var is_instrumental: Boolean = false
 
     companion object {
@@ -45,11 +59,11 @@ class GenerateAudioFragment : Fragment() {
         fun newInstance() = GenerateAudioFragment().apply {}
 
         val urlPrefixArray = arrayOf(
-            "https://magic-music-acc-5.vercel.app",
-            "https://magic-music-acc-4.vercel.app",
-            "https://magic-music-acc-3.vercel.app",
-            "https://magic-music-acc-2.vercel.app",
             "https://magic-music-acc-1.vercel.app",
+            "https://magic-music-acc-2.vercel.app",
+            "https://magic-music-acc-3.vercel.app",
+            "https://magic-music-acc-4.vercel.app",
+            "https://magic-music-acc-5.vercel.app",
             "https://magic-music-acc-0.vercel.app"
         )
 
@@ -67,19 +81,24 @@ class GenerateAudioFragment : Fragment() {
 
         viewModel = ViewModelProvider(requireActivity()).get(GenerateAudioViewModel::class.java)
 
+
         inputText = view.findViewById(R.id.inputText)
         generateButton = view.findViewById(R.id.generateButton)
         newButton = view.findViewById(R.id.newButton)
         getButton = view.findViewById(R.id.getButton)
         instrumentalSwitch = view.findViewById(R.id.instrumentalSwitch)
+        lyricSwitch = view.findViewById(R.id.lyricSwitch)
         limitButton = view.findViewById(R.id.limitButton)
         statusText = view.findViewById(R.id.statusText)
         progressBar = view.findViewById(R.id.progressBar)
         playButton = view.findViewById(R.id.playButton)
+        swapButton = view.findViewById(R.id.swapButton)
         seekBar = view.findViewById(R.id.seekBar)
+        lyricTextView = view.findViewById(R.id.lyricTextView)
 
         println("userin ${viewModel.userInputText.value}")
         inputText.setText(viewModel.userInputText.value)
+
 
         inputText.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
@@ -96,6 +115,8 @@ class GenerateAudioFragment : Fragment() {
 
         setupObservers()
 
+        println("created")
+
         generateButton.setOnClickListener {
             val text = inputText.text.toString()
             if (text.isNotEmpty()) {
@@ -103,7 +124,7 @@ class GenerateAudioFragment : Fragment() {
                 .setTitle("Confirmation")
                 .setMessage("This action costs 10 credits to generate 2 songs. Continue?")
                 .setPositiveButton("Let's go") { dialog, which ->
-                    CoroutineScope(Dispatchers.Main).launch {
+                    lifecycleScope.launch(Dispatchers.Main) {
                         viewModel.generateMusic(text, is_instrumental)
                     }
                 }
@@ -125,9 +146,10 @@ class GenerateAudioFragment : Fragment() {
             .setTitle("Confirmation")
             .setMessage("The UI will be refreshed, but the previous task is still being processed?")
             .setPositiveButton("New") { dialog, which ->
-                CoroutineScope(Dispatchers.Main).launch {
-                    requireActivity().recreate()
-                }
+                viewModel.resetViewModelState()
+                val fragmentTransaction = parentFragmentManager.beginTransaction()
+                fragmentTransaction.replace(R.id.main_fragment, GenerateAudioFragment())
+                fragmentTransaction.commit()
             }
             .setNegativeButton("Wait") { dialog, which ->
                 // If the user cancels, just dismiss the dialog
@@ -141,7 +163,7 @@ class GenerateAudioFragment : Fragment() {
             .setTitle("Confirmation")
             .setMessage("Download 2 recent tracks")
             .setPositiveButton("Yes") { dialog, which ->
-                CoroutineScope(Dispatchers.Main).launch {
+                lifecycleScope.launch(Dispatchers.Main) {
                     viewModel.fetchHistoryRecords()
                 }
             }
@@ -158,7 +180,7 @@ class GenerateAudioFragment : Fragment() {
             .setMessage("Check remain credits of all accounts. No credit loss")
             .setPositiveButton("Yes") { dialog, which ->
                 for (url in urlPrefixArray) {
-                    CoroutineScope(Dispatchers.Main).launch {
+                    lifecycleScope.launch(Dispatchers.Main) {
                         viewModel.checkLimit(url)
                     }
                 }
@@ -174,11 +196,24 @@ class GenerateAudioFragment : Fragment() {
             playMusic()
         }
 
+        swapButton.setOnClickListener {
+            swapSong()
+        }
+
+
         instrumentalSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 is_instrumental = true
             } else {
                 is_instrumental = false
+            }
+        }
+
+        lyricSwitch.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                lyricTextView.visibility = View.VISIBLE
+            } else {
+                lyricTextView.visibility = View.GONE
             }
         }
     }
@@ -192,6 +227,10 @@ class GenerateAudioFragment : Fragment() {
             playButton.visibility = visibility
         }
 
+        viewModel.swapButtonVisibility.observe(viewLifecycleOwner) { visibility ->
+            swapButton.visibility = visibility
+        }
+
         viewModel.statusText.observe(viewLifecycleOwner) { status ->
             statusText.text = status
         }
@@ -201,70 +240,125 @@ class GenerateAudioFragment : Fragment() {
         }
 
         viewModel.toastMessage.observe(viewLifecycleOwner) { message ->
-            Log.d("Toast", "change message to: $message")
+            if (!message.isNullOrEmpty())
             requireActivity().runOnUiThread {
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    private fun playMusic() {
-        val filePath = viewModel.audioFilePath.value
-        if (mediaPlayer == null) {
-            mediaPlayer = MediaPlayer()
+    private fun swapSong() {
+        audioFileIndex = 1 - audioFileIndex
+        playSongJob?.cancel()
+
+        mediaPlayer?.let {
+            if (it.isPlaying) {
+                it.stop()
+            }
+            it.release()
+            mediaPlayer = null
+            playButton.setBackgroundResource(R.drawable.paused_button)
         }
 
-        filePath?.let {
-            mediaPlayer?.apply {
-                reset()
-                setDataSource(it)
-                prepare()
-                start()
-            }
+        playMusic()
+    }
 
-            playButton.text = "Pause Music"
-            playButton.setOnClickListener {
-                mediaPlayer?.let { player ->
-                    if (player.isPlaying) {
-                        player.pause()
-                        playButton.text = "Play Music"
-                    } else {
-                        player.start()
-                        playButton.text = "Pause Music"
+    private fun playMusic() {
+        playSongJob = lifecycleScope.launch(Dispatchers.Main) {
+            if (mediaPlayer == null) {
+                mediaPlayer = MediaPlayer()
+            }
+            val downloadsDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "magicmusic/audio")
+            val files = downloadsDir.listFiles()
+
+            // Check if the files array is null or empty
+            if (files != null && files.isNotEmpty()) {
+                loadLyric()
+                val sizeDir = files.size
+                val filePath = files.getOrNull(sizeDir - audioFileIndex - 1)?.toString()  // Get the file safely
+                viewModel.statusText.postValue("${File(filePath).name}")
+
+                filePath?.let {
+                    mediaPlayer?.apply {
+                        reset()
+                        setDataSource(it)
+                        prepare()
+                        start()
                     }
-                }
-            }
 
-            mediaPlayer?.setOnCompletionListener {
-                playButton.text = "Play Music"
-            }
+                    playButton.setBackgroundResource(R.drawable.played_button)
 
-            mediaPlayer?.setOnPreparedListener {
-                seekBar.max = mediaPlayer?.duration ?: 0
-                seekBar.visibility = View.VISIBLE
-
-                activity?.runOnUiThread(object : Runnable {
-                    override fun run() {
-                        seekBar.progress = mediaPlayer?.currentPosition ?: 0
-                        if (mediaPlayer?.isPlaying == true) {
-                            seekBar.postDelayed(this, 100)
+                    playButton.setOnClickListener {
+                        mediaPlayer?.let { player ->
+                            if (player.isPlaying) {
+                                player.pause()
+                                playButton.setBackgroundResource(R.drawable.paused_button)
+                            } else {
+                                player.start()
+                                playButton.setBackgroundResource(R.drawable.played_button)
+                            }
                         }
                     }
-                })
-            }
 
-            seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                    if (fromUser) {
-                        mediaPlayer?.seekTo(progress)
+                    mediaPlayer?.setOnCompletionListener {
+                        playButton.setBackgroundResource(R.drawable.paused_button)
                     }
-                }
 
-                override fun onStartTrackingTouch(seekBar: SeekBar) {}
-                override fun onStopTrackingTouch(seekBar: SeekBar) {}
-            })
-        } ?: run {
-            statusText.text = "No audio file to play"
+                    mediaPlayer?.setOnPreparedListener {
+                        seekBar.max = mediaPlayer?.duration ?: 0
+                        seekBar.visibility = View.VISIBLE
+
+                        activity?.runOnUiThread(object : Runnable {
+                            override fun run() {
+                                seekBar.progress = mediaPlayer?.currentPosition ?: 0
+                                if (mediaPlayer?.isPlaying == true) {
+                                    seekBar.postDelayed(this, 100)
+                                }
+                            }
+                        })
+                    }
+
+                    seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                        override fun onProgressChanged(
+                            seekBar: SeekBar,
+                            progress: Int,
+                            fromUser: Boolean
+                        ) {
+                            if (fromUser) {
+                                mediaPlayer?.seekTo(progress)
+                            }
+                        }
+
+                        override fun onStartTrackingTouch(seekBar: SeekBar) {}
+                        override fun onStopTrackingTouch(seekBar: SeekBar) {}
+                    })
+                }
+            } else {
+                // Handle case where files array is null or empty
+                viewModel.statusText.postValue("No audio files found in the directory")
+            }
+        }
+    }
+
+    private fun loadLyric() {
+        val downloadsDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "magicmusic/lyric")
+        val files = downloadsDir.listFiles()
+        var filePath: String? = ""
+        var sizeDir: Int = files.size
+        if (files != null && files.isNotEmpty()) {
+            filePath = files.getOrNull(sizeDir - 1).toString()  // Get the first file
+        }
+        val file = File(filePath)
+        if (file.exists()) {
+            val inputStream = FileInputStream(file)
+            val reader = InputStreamReader(inputStream, Charset.forName("UTF-8"))
+            val lyrics = reader.readText()
+            reader.close()
+
+            // Set the lyrics text to the TextView
+            lyricTextView.text = lyrics
+        } else {
+            lyricTextView.text = "Lyrics file not found!"
         }
     }
 
