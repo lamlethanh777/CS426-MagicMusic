@@ -13,8 +13,6 @@ import android.widget.SeekBar
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import com.example.cs426_magicmusic.service.musicplayer.MusicPlayerService
 import com.example.cs426_magicmusic.R
 import com.example.cs426_magicmusic.data.entity.Song
@@ -98,11 +96,6 @@ class SongPlayerActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_play)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.play_layout)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
 
         onNewIntent(intent)
         initializeViews()
@@ -120,12 +113,22 @@ class SongPlayerActivity : AppCompatActivity() {
         artistNames = findViewById(R.id.play_music_author)
         imageView = findViewById(R.id.play_music_wall)
         retractButton = findViewById(R.id.play_retract_button)
+
+        songTitle.isSelected = true
+        artistNames.isSelected = true
     }
 
     private fun setClickListeners() {
         setSeekBarListener()
         setPlayPauseButtonListener()
         setRetractButtonListener()
+        setIsFavoriteButtonListener()
+    }
+
+    private fun setIsFavoriteButtonListener() {
+        favoriteButton.setOnClickListener() {
+            songPlayerViewModel.setIsFavorite()
+        }
     }
 
     private fun setSeekBarListener() {
@@ -169,20 +172,20 @@ class SongPlayerActivity : AppCompatActivity() {
     }
 
     private fun subscribeToIsPlayingLiveData() {
-        songPlayerViewModel.isPlaying.observe(this@SongPlayerActivity) {
-                isPlaying -> when {
-            isPlaying -> playPauseButton.setBackgroundResource(R.drawable.played_button)
-            else -> playPauseButton.setBackgroundResource(R.drawable.paused_button)
-        }
+        songPlayerViewModel.isPlaying.observe(this@SongPlayerActivity) { isPlaying ->
+            when {
+                isPlaying -> playPauseButton.setBackgroundResource(R.drawable.ic_pause_circle)
+                else -> playPauseButton.setBackgroundResource(R.drawable.ic_play_circle)
+            }
         }
     }
 
     private fun subscribeToCurrentSongPositionLiveData() {
         songPlayerViewModel.currentSongPosition.observe(this@SongPlayerActivity) {
-                currentPosition -> if (shouldUpdateSeekBar) {
-            seekBar.progress = currentPosition
-            textFrom.text = formatTimestampToMMSS(currentPosition)
-        }
+            currentPosition -> if (shouldUpdateSeekBar) {
+                seekBar.progress = currentPosition
+                textFrom.text = formatTimestampToMMSS(currentPosition)
+            }
         }
     }
 
@@ -196,6 +199,11 @@ class SongPlayerActivity : AppCompatActivity() {
             // TODO: DANGEROUS. FIX THIS
             seekBar.max = song.duration.toInt()
             textTo.text = formatTimestampToMMSS(song.duration.toInt())
+
+            when {
+                song.isFavorite -> favoriteButton.setBackgroundResource(R.drawable.ic_liked)
+                else -> favoriteButton.setBackgroundResource(R.drawable.ic_like)
+            }
         }
     }
 

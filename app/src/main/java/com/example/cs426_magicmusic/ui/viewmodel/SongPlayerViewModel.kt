@@ -95,4 +95,11 @@ class SongPlayerViewModel : ViewModel() {
     fun setCurrentSong(musicPlayerService: MusicPlayerService?) {
         _currentSong.value = musicPlayerService?.getCurrentSong()
     }
+
+    fun setIsFavorite() {
+//        _currentSong.value?.let { song ->
+//            song.isFavorite = !song.isFavorite
+//            _currentSong.value = song
+//        }
+    }
 }

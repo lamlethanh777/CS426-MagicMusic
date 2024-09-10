@@ -23,7 +23,7 @@ object ImageUtility {
 
         if (thumbnail == null) {
             Glide.with(context)
-                .load(R.drawable.placeholder_default)  // Placeholder image while loading
+                .load(R.drawable.ic_music_note)  // Placeholder image while loading
                 .into(view)
         } else {
             Glide.with(context)

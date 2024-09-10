@@ -9,7 +9,8 @@
         android:id="@+id/swipe_refresh_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="20dp">
+        android:layout_marginTop="20dp"
+        android:layout_marginHorizontal="16dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -19,6 +20,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
                 android:text="Library"
                 android:textSize="24sp"
                 android:textAlignment="center"
@@ -26,11 +28,11 @@
                 tools:ignore="HardcodedText" />
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/library_music_list_recycleview"
+                android:id="@+id/library_music_list_recyclerview"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:nestedScrollingEnabled="false" />
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:nestedScrollingEnabled="true" />
 
         </LinearLayout>
 

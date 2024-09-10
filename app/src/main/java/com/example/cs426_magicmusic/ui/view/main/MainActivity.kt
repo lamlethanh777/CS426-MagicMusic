@@ -73,11 +73,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_layout)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
 
         PermissionUtility.requestPermissions(this)
         if (PermissionUtility.hasEnoughPermission(this)) {
@@ -96,6 +91,9 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         currentArtistNames = findViewById(R.id.current_song_author)
         currentSongPlayPause = findViewById(R.id.current_song_play_pause)
         currentSongLayout = findViewById(R.id.current_song_layout)
+
+        currentSongTitle.isSelected = true
+        currentArtistNames.isSelected = true
     }
 
     private fun initializeDatabase() {
@@ -159,8 +157,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     private fun subscribeToIsPlayingLiveData() {
         mainViewModel.isPlaying.observe(this@MainActivity) { isPlaying ->
             when {
-                isPlaying -> currentSongPlayPause.setBackgroundResource(R.drawable.played_button)
-                else -> currentSongPlayPause.setBackgroundResource(R.drawable.paused_button)
+                isPlaying -> currentSongPlayPause.setBackgroundResource(R.drawable.ic_pause_circle)
+                else -> currentSongPlayPause.setBackgroundResource(R.drawable.ic_play_circle)
             }
         }
     }

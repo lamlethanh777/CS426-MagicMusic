@@ -10,25 +10,29 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="20dp"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="40dp"
         android:orientation="vertical">
 
         <ImageButton
             android:id="@+id/play_retract_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:foreground="?selectableItemBackground"
             android:background="@drawable/ic_retract_player"
-            android:layout_marginTop="12dp"
-            android:layout_marginStart="12dp"/>
+            android:padding="12dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="8dp"/>
 
         <androidx.cardview.widget.CardView
-            android:layout_width="320dp"
-            android:layout_height="320dp"
+            android:layout_width="300dp"
+            android:layout_height="300dp"
             android:layout_gravity="center_horizontal"
-            android:background="@drawable/home_black_25_24"
             android:layout_marginBottom="15dp"
             android:layout_marginTop="20dp"
-            app:cardCornerRadius="30dp">
+            app:cardCornerRadius="30dp"
+            app:cardElevation="0dp"
+            app:cardMaxElevation="0dp">
             <ImageView
                 android:id="@+id/play_music_wall"
                 android:layout_width="match_parent"
@@ -45,6 +49,7 @@
                 android:id="@+id/play_music_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:maxWidth="230dp"
                 android:text="title"
                 android:textSize="20sp"
                 android:textStyle="bold"
@@ -52,28 +57,36 @@
                 app:layout_constraintBottom_toTopOf="@id/play_music_author"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                android:maxLines="1"
+                android:singleLine="true"
+                android:ellipsize="marquee"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:scrollHorizontally="true"
                 tools:ignore="HardcodedText" />
 
             <TextView
                 android:id="@+id/play_music_author"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:maxWidth="230dp"
                 android:text="author"
                 android:textSize="16sp"
                 android:layout_marginStart="10dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/play_music_title"
-                android:maxLines="1"
+                android:singleLine="true"
+                android:ellipsize="marquee"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:scrollHorizontally="true"
                 tools:ignore="HardcodedText" />
 
             <ImageButton
                 android:id="@+id/play_music_favorite"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:layout_marginEnd="10dp"
-                android:background="@drawable/home_black_25_24"
+                android:background="@drawable/ic_like"
+                android:foreground="?selectableItemBackground"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -122,21 +135,27 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_gravity="center_horizontal">
+            android:layout_gravity="center_horizontal"
+            android:gravity="center">
             
             <ImageButton
                 android:layout_width="40dp"
-                android:layout_height="40dp" />
+                android:layout_height="40dp"
+                android:foreground="?selectableItemBackground"
+                android:background="@drawable/ic_skip_previous"/>
 
             <ImageButton
                 android:id="@+id/play_music_play_pause"
                 android:layout_width="70dp"
                 android:layout_height="70dp"
-                android:background="@drawable/paused_button" />
+                android:foreground="?selectableItemBackground"
+                android:background="@drawable/ic_play_circle" />
 
             <ImageButton
                 android:layout_width="40dp"
-                android:layout_height="40dp" />
+                android:layout_height="40dp"
+                android:foreground="?selectableItemBackground"
+                android:background="@drawable/ic_skip_next"/>
 
         </LinearLayout>
 
