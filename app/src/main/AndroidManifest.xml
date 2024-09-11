@@ -6,12 +6,17 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:requestLegacyExternalStorage="true"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
+        android:enableOnBackInvokedCallback="true"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -20,10 +25,10 @@
         android:theme="@style/Theme.CS426MagicMusic"
         tools:targetApi="31">
         <activity
-            android:name=".PlayActivity"
+            android:name=".ui.view.songplayer.SongPlayerActivity"
             android:exported="false" />
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.view.main.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -31,6 +36,23 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".service.musicplayer.MusicPlayerService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback"
+            android:stopWithTask="true" />
+
+        <receiver
+            android:name=".service.musicplayer.MusicBroadcastReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.example.cs426_magicmusic.ACTION_PLAY_PAUSE" />
+                <action android:name="com.example.cs426_magicmusic.ACTION_SKIP_NEXT" />
+                <action android:name="com.example.cs426_magicmusic.ACTION_SKIP_PREVIOUS" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

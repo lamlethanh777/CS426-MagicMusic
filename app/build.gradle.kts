@@ -1,6 +1,12 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+
+    // for @Parcelize
+    id("kotlin-parcelize")
+
+    // kapt for Room Database
+    id("org.jetbrains.kotlin.kapt")
 }
 
 android {
@@ -42,9 +48,36 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.lifecycle.service)
+    implementation(libs.androidx.lifecycle.process)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    //Room Database Library
+    val roomVersion = "2.6.1"
+    implementation("androidx.room:room-ktx:$roomVersion")
+    annotationProcessor("androidx.room:room-compiler:$roomVersion")
+    // To use Kotlin annotation processing tool (kapt)
+    kapt("androidx.room:room-compiler:$roomVersion")
+
+    // ViewModel and Lifecycle
+    val lifecycleVersion = "2.8.4"
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion")
+    // LiveData
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleVersion")
+
+    val glideVersion = "4.16.0"
+    // Image loading
+    implementation("com.github.bumptech.glide:glide:$glideVersion")
+
+    val easyPermissionKtxVersion = "1.0.0"
+    implementation("com.vmadalin:easypermissions-ktx:$easyPermissionKtxVersion")
+    val fragmentVersion = "1.8.3"
+    implementation("androidx.fragment:fragment-ktx:$fragmentVersion")
+
+    val swipeRefreshLayoutVersion = "1.1.0"
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:$swipeRefreshLayoutVersion")
 
     //for okhttp - deploy AI
     implementation("com.squareup.okhttp3:okhttp:4.9.1")

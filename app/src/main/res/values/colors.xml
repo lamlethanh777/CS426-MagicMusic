@@ -2,4 +2,6 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="link_water">#e2edfa</color>
+    <color name="hint_of_red">#faefe2</color>
 </resources>

@@ -1,0 +1,8 @@
+<!-- res/drawable/custom_shape.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <size
+        android:width="80dp"
+        android:height="80dp" />
+    <solid android:color="@color/link_water" />
+    <corners android:radius="16dp" />
+</shape>
