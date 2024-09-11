@@ -121,18 +121,18 @@ class GenerateAudioFragment : Fragment() {
             val text = inputText.text.toString()
             if (text.isNotEmpty()) {
                 AlertDialog.Builder(requireContext())
-                .setTitle("Confirmation")
-                .setMessage("This action costs 10 credits to generate 2 songs. Continue?")
-                .setPositiveButton("Let's go") { dialog, which ->
-                    lifecycleScope.launch(Dispatchers.Main) {
-                        viewModel.generateMusic(text, is_instrumental)
+                    .setTitle("Confirmation")
+                    .setMessage("This action costs 10 credits to generate 2 songs. Continue?")
+                    .setPositiveButton("Let's go") { dialog, which ->
+                        lifecycleScope.launch(Dispatchers.Main) {
+                            viewModel.generateMusic(text, is_instrumental)
+                        }
                     }
-                }
-                .setNegativeButton("Cancel") { dialog, which ->
-                    // If the user cancels, just dismiss the dialog
-                    dialog.dismiss()
-                }
-                .show()
+                    .setNegativeButton("Cancel") { dialog, which ->
+                        // If the user cancels, just dismiss the dialog
+                        dialog.dismiss()
+                    }
+                    .show()
             }
             else {
                 requireActivity().runOnUiThread {
@@ -143,53 +143,53 @@ class GenerateAudioFragment : Fragment() {
 
         newButton.setOnClickListener {
             AlertDialog.Builder(requireContext())
-            .setTitle("Confirmation")
-            .setMessage("The UI will be refreshed, but the previous task is still being processed?")
-            .setPositiveButton("New") { dialog, which ->
-                viewModel.resetViewModelState()
-                val fragmentTransaction = parentFragmentManager.beginTransaction()
-                fragmentTransaction.replace(R.id.main_fragment, GenerateAudioFragment())
-                fragmentTransaction.commit()
-            }
-            .setNegativeButton("Wait") { dialog, which ->
-                // If the user cancels, just dismiss the dialog
-                dialog.dismiss()
-            }
-            .show()
+                .setTitle("Confirmation")
+                .setMessage("The UI will be refreshed, but the previous task is still being processed?")
+                .setPositiveButton("New") { dialog, which ->
+                    viewModel.resetViewModelState()
+                    val fragmentTransaction = parentFragmentManager.beginTransaction()
+                    fragmentTransaction.replace(R.id.main_fragment, GenerateAudioFragment())
+                    fragmentTransaction.commit()
+                }
+                .setNegativeButton("Wait") { dialog, which ->
+                    // If the user cancels, just dismiss the dialog
+                    dialog.dismiss()
+                }
+                .show()
         }
 
         getButton.setOnClickListener{
             AlertDialog.Builder(requireContext())
-            .setTitle("Confirmation")
-            .setMessage("Download 2 recent tracks")
-            .setPositiveButton("Yes") { dialog, which ->
-                lifecycleScope.launch(Dispatchers.Main) {
-                    viewModel.fetchHistoryRecords()
+                .setTitle("Confirmation")
+                .setMessage("Download 2 recent tracks")
+                .setPositiveButton("Yes") { dialog, which ->
+                    lifecycleScope.launch(Dispatchers.Main) {
+                        viewModel.fetchHistoryRecords()
+                    }
                 }
-            }
-            .setNegativeButton("No") { dialog, which ->
-                // If the user cancels, just dismiss the dialog
-                dialog.dismiss()
-            }
-            .show()
+                .setNegativeButton("No") { dialog, which ->
+                    // If the user cancels, just dismiss the dialog
+                    dialog.dismiss()
+                }
+                .show()
         }
 
         limitButton.setOnClickListener{
             AlertDialog.Builder(requireContext())
-            .setTitle("Confirmation")
-            .setMessage("Check remain credits of all accounts. No credit loss")
-            .setPositiveButton("Yes") { dialog, which ->
-                for (url in urlPrefixArray) {
-                    lifecycleScope.launch(Dispatchers.Main) {
-                        viewModel.checkLimit(url)
+                .setTitle("Confirmation")
+                .setMessage("Check remain credits of all accounts. No credit loss")
+                .setPositiveButton("Yes") { dialog, which ->
+                    for (url in urlPrefixArray) {
+                        lifecycleScope.launch(Dispatchers.Main) {
+                            viewModel.checkLimit(url)
+                        }
                     }
                 }
-            }
-            .setNegativeButton("No") { dialog, which ->
-                // If the user cancels, just dismiss the dialog
-                dialog.dismiss()
-            }
-            .show()
+                .setNegativeButton("No") { dialog, which ->
+                    // If the user cancels, just dismiss the dialog
+                    dialog.dismiss()
+                }
+                .show()
         }
 
         playButton.setOnClickListener {
@@ -241,9 +241,9 @@ class GenerateAudioFragment : Fragment() {
 
         viewModel.toastMessage.observe(viewLifecycleOwner) { message ->
             if (!message.isNullOrEmpty())
-            requireActivity().runOnUiThread {
-                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-            }
+                requireActivity().runOnUiThread {
+                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                }
         }
     }
 

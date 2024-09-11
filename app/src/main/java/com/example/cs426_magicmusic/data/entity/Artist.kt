@@ -1,0 +1,14 @@
+package com.example.cs426_magicmusic.data.entity
+
+import android.os.Parcelable
+import androidx.room.Entity
+import androidx.room.Index
+import androidx.room.PrimaryKey
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
+@Entity(tableName = "artists")
+data class Artist(
+//    @PrimaryKey(autoGenerate = true) val artistId: Long = 0,
+    @PrimaryKey(autoGenerate = false) val artistName: String
+) : Parcelable

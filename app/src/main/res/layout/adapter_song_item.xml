@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/item_music_layout"
+    android:id="@+id/item_song_layout"
     android:layout_width="match_parent"
     android:layout_height="70dp"
     android:padding="15dp"
@@ -9,35 +9,36 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <ImageView
-        android:id="@+id/item_music_icon"
+        android:id="@+id/item_song_image"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:background="@drawable/home_black_25_24"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
-        android:id="@+id/item_music_title"
+        android:id="@+id/item_song_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
-        app:layout_constraintStart_toEndOf="@id/item_music_icon"
+        app:layout_constraintStart_toEndOf="@id/item_song_image"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/item_music_author"
+        app:layout_constraintBottom_toTopOf="@id/item_song_artists"
         android:text="title"
         android:textStyle="bold"
+        android:maxLines="1"
         tools:ignore="HardcodedText" />
 
     <TextView
-        android:id="@+id/item_music_author"
+        android:id="@+id/item_song_artists"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
-        app:layout_constraintStart_toEndOf="@id/item_music_icon"
-        app:layout_constraintTop_toBottomOf="@id/item_music_title"
+        app:layout_constraintStart_toEndOf="@id/item_song_image"
+        app:layout_constraintTop_toBottomOf="@id/item_song_title"
         app:layout_constraintBottom_toBottomOf="parent"
-        android:text="author"
+        android:maxLines="1"
+        android:text="artist"
         tools:ignore="HardcodedText" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
