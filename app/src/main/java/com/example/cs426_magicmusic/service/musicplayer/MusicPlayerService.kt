@@ -275,10 +275,7 @@ class MusicPlayerService : LifecycleService() {
 
         // Update the RemoteViews with the new song information
         remoteViews.setTextViewText(R.id.notification_song_title, song.title)
-        remoteViews.setTextViewText(
-            R.id.notification_song_artists,
-            song.artistNames ?: STRING_UNKNOWN_ARTIST
-        )
+        remoteViews.setTextViewText(R.id.notification_song_artists, song.artistNames)
 
         val songImage = ImageUtility.loadBitmap(this, song.uri)
         Log.d("updateNotification", "thumbnail: $songImage")

@@ -10,6 +10,10 @@ import com.example.cs426_magicmusic.data.entity.Song
 import com.example.cs426_magicmusic.data.repository.AlbumRepository
 import com.example.cs426_magicmusic.data.repository.ArtistRepository
 import com.example.cs426_magicmusic.data.repository.SongRepository
+import com.example.cs426_magicmusic.others.Constants.STRING_SYSTEM_UNKNOWN_TAG
+import com.example.cs426_magicmusic.others.Constants.STRING_UNKNOWN_ALBUM
+import com.example.cs426_magicmusic.others.Constants.STRING_UNKNOWN_ARTIST
+import com.example.cs426_magicmusic.others.Constants.STRING_UNKNOWN_TITLE
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -69,21 +73,35 @@ object LocalDBSynchronizer {
                 val durationIndex = cursor.getColumnIndex(MediaStore.Audio.Media.DURATION)
                 val artistIndex = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)
                 val albumIndex = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)
-                val albumIdIndex = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)
+//                val albumIdIndex = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)
 
                 while (cursor.moveToNext()) {
                     val mediaId = cursor.getLong(mediaIdIndex)
-                    val albumId = cursor.getString(albumIdIndex)
-                    val songTitle = cursor.getString(titleIndex)
+//                    val albumId = cursor.getString(albumIdIndex)
+                    var songTitle = cursor.getString(titleIndex)
                     val path = cursor.getString(pathIndex)
                     val duration = cursor.getLong(durationIndex)
-                    val artistNames = cursor.getString(artistIndex)?.takeIf { it != "<unknown>" }
-                    val albumName = cursor.getString(albumIndex)
+                    var artistNames =
+                        cursor.getString(artistIndex)?.takeIf { it != STRING_SYSTEM_UNKNOWN_TAG }
+                    var albumName = cursor.getString(albumIndex)
+
+                    Log.d(
+                        "LocalDBSynchronizer",
+                        "Processing song: $songTitle, path: $path, album: $albumName, artists: $artistNames"
+                    )
 
                     val uri = ContentUris.withAppendedId(
                         MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                         mediaId
                     )
+
+                    if (path == null) {
+                        continue
+                    }
+
+                    songTitle = songTitle ?: STRING_UNKNOWN_TITLE
+                    artistNames = artistNames ?: STRING_UNKNOWN_ARTIST
+                    albumName = albumName ?: STRING_UNKNOWN_ALBUM
 
                     val song = Song(
                         path = path,
@@ -102,7 +120,7 @@ object LocalDBSynchronizer {
                     _albumsWithSongsList[album]?.add(song)
 
                     // Handle multiple artists
-                    val artists = artistNames?.split(",")?.map { Artist(it.trim()) } ?: emptyList()
+                    val artists = artistNames.split(",").map { Artist(it.trim()) }
 
                     for (artist in artists) {
                         if (_artistWithSongsList[artist] == null) {
@@ -118,23 +136,65 @@ object LocalDBSynchronizer {
     suspend fun synchronizeDatabase(context: Context) {
         Log.d("LocalDBSynchronizer", "Starting synchronization")
 
+        // Fetch the current state of the local storage
         fetchLocalMusicFiles(context)
 
-        Log.d("LocalDBSynchronizer", "Fetched songs: ${_songList.size}")
-        Log.d("LocalDBSynchronizer", "Fetched albums: ${_albumsWithSongsList.size}")
-        Log.d("LocalDBSynchronizer", "Fetched artists: ${_artistWithSongsList.size}")
+        Log.d("LocalDBSynchronizer", "Fetched songs from local storage: ${_songList.size}")
+        Log.d(
+            "LocalDBSynchronizer",
+            "Fetched albums from local storage: ${_albumsWithSongsList.size}"
+        )
+        Log.d(
+            "LocalDBSynchronizer",
+            "Fetched artists from local storage: ${_artistWithSongsList.size}"
+        )
 
-        // Delete all existing data
-        songRepository.deleteAllSongs()
-        albumRepository.deleteAllAlbums()
-        artistRepository.deleteAllArtists()
+        // Fetch the current state of the database
+        val currentSongsInDb = songRepository.fetchSongs()
+        val currentAlbumsInDb = albumRepository.fetchAlbums()
+        val currentArtistsInDb = artistRepository.fetchArtists()
 
-        // Insert new data
-        songRepository.insertAllSongs(_songList)
-        albumRepository.insertAllAlbumsWithSongs(_albumsWithSongsList.toMutableMap())
-        artistRepository.insertAllArtistsWithSongs(_artistWithSongsList.toMutableMap())
+        Log.d("LocalDBSynchronizer", "Current songs in DB: ${currentSongsInDb.size}")
+        Log.d("LocalDBSynchronizer", "Current albums in DB: ${currentAlbumsInDb.size}")
+        Log.d("LocalDBSynchronizer", "Current artists in DB: ${currentArtistsInDb.size}")
+
+        // Find newly added songs
+        val newSongs = _songList.filter { song ->
+            currentSongsInDb.none { it.path == song.path }
+        }
+
+        // Find deleted songs
+        val deletedSongs = currentSongsInDb.filter { song ->
+            _songList.none { it.path == song.path }
+        }
+
+        Log.d("LocalDBSynchronizer", "New songs to add: ${newSongs.size}")
+        Log.d("LocalDBSynchronizer", "Songs to delete: ${deletedSongs.size}")
+
+        // Update the database
+        songRepository.deleteSongs(deletedSongs)
+        songRepository.insertAllSongs(newSongs)
+
+        // Update albums and artists
+        val newAlbums = _albumsWithSongsList.keys.filter { album ->
+            currentAlbumsInDb.none { it.albumName == album.albumName }
+        }
+        val newArtists = _artistWithSongsList.keys.filter { artist ->
+            currentArtistsInDb.none { it.artistName == artist.artistName }
+        }
+
+        Log.d("LocalDBSynchronizer", "New albums to add: ${newAlbums.size}")
+        Log.d("LocalDBSynchronizer", "New artists to add: ${newArtists.size}")
+
+        // Insert new albums and artists
+        albumRepository.insertAllAlbumsWithSongs(newAlbums.associateWith { _albumsWithSongsList[it]!! }
+            .toMutableMap())
+        artistRepository.insertAllArtistsWithSongs(newArtists.associateWith { _artistWithSongsList[it]!! }
+            .toMutableMap())
 
         // Log the final state of the database
         Log.d("LocalDBSynchronizer", "Songs after sync: ${songRepository.fetchSongs().size}")
+        Log.d("LocalDBSynchronizer", "Albums after sync: ${albumRepository.fetchAlbums().size}")
+        Log.d("LocalDBSynchronizer", "Artists after sync: ${artistRepository.fetchArtists().size}")
     }
 }

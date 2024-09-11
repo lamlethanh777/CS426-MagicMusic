@@ -216,7 +216,7 @@ class SongPlayerActivity : AppCompatActivity() {
             ImageUtility.loadImage(this, song.uri, imageView)
 
             songTitle.text = song.title
-            artistNames.text = song.artistNames ?: STRING_UNKNOWN_ARTIST
+            artistNames.text = song.artistNames
 
             // TODO: DANGEROUS. FIX THIS
             seekBar.max = song.duration.toInt()

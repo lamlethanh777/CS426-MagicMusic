@@ -13,6 +13,6 @@ data class Song(
     val title: String,
     val uri: String,
     val duration: Long,
-    val artistNames: String?,
+    val artistNames: String,
     val isFavorite: Boolean = false,
 ) : Parcelable

@@ -60,7 +60,7 @@ class SongItemAdapter(
         fun onBind(song: Song) {
             mSong = song
             title.text = song.title
-            artists.text = song.artistNames ?: STRING_UNKNOWN_ARTIST
+            artists.text = song.artistNames
             ImageUtility.loadImage(itemView.context, song.uri, image)
 
             itemView.setOnClickListener{ itemListener(mSong) }

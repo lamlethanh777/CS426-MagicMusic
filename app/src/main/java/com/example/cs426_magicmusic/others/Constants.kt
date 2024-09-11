@@ -45,6 +45,9 @@ object Constants {
         const val INTENT_KEY_NEW_SONG = "NEW_SONG"
 
         const val STRING_UNKNOWN_ARTIST = "Unknown Artist"
+        const val STRING_UNKNOWN_ALBUM = "Unknown Album"
+        const val STRING_UNKNOWN_TITLE = "Unknown Title"
+        const val STRING_SYSTEM_UNKNOWN_TAG = "<unknown>"
 
         enum class PlayerMode {
                 REPEAT,

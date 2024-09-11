@@ -173,7 +173,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             currentSongLayout.visibility = View.VISIBLE
             ImageUtility.loadImage(this, song.uri, currentSongImage)
             currentSongTitle.text = song.title
-            currentArtistNames.text = song.artistNames ?: STRING_UNKNOWN_ARTIST
+            currentArtistNames.text = song.artistNames
         }
     }
 
