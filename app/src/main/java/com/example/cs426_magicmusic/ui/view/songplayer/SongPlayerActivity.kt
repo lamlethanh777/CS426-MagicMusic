@@ -13,12 +13,12 @@ import android.widget.SeekBar
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import com.example.cs426_magicmusic.service.musicplayer.MusicPlayerService
 import com.example.cs426_magicmusic.R
 import com.example.cs426_magicmusic.data.entity.Song
 import com.example.cs426_magicmusic.others.Constants.ACTION_PLAY_NEW_SONG
 import com.example.cs426_magicmusic.others.Constants.INTENT_KEY_NEW_SONG
 import com.example.cs426_magicmusic.others.Constants.STRING_UNKNOWN_ARTIST
+import com.example.cs426_magicmusic.service.musicplayer.MusicPlayerService
 import com.example.cs426_magicmusic.ui.viewmodel.SongPlayerViewModel
 import com.example.cs426_magicmusic.utils.ImageUtility
 import com.example.cs426_magicmusic.utils.IntentUtility.parcelable
@@ -34,6 +34,8 @@ class SongPlayerActivity : AppCompatActivity() {
     private lateinit var artistNames: TextView
     private lateinit var imageView: ImageView
     private lateinit var retractButton: ImageButton
+    private lateinit var skipNextButton: ImageButton
+    private lateinit var skipPreviousButton: ImageButton
 
     private lateinit var musicPlayerService: MusicPlayerService
 
@@ -59,6 +61,7 @@ class SongPlayerActivity : AppCompatActivity() {
                     musicPlayerService.setPlaylist(songList)
                     musicPlayerService.playNextSong()
                 }
+
                 else -> {
                     Log.d("SongPlayerActivity", "No action")
                 }
@@ -85,6 +88,7 @@ class SongPlayerActivity : AppCompatActivity() {
                         songList.add(song)
                     }
                 }
+
                 else -> {
                     Log.d("SongPlayerActivity", "No new song")
                 }
@@ -113,6 +117,8 @@ class SongPlayerActivity : AppCompatActivity() {
         artistNames = findViewById(R.id.play_music_author)
         imageView = findViewById(R.id.play_music_wall)
         retractButton = findViewById(R.id.play_retract_button)
+        skipNextButton = findViewById(R.id.play_music_next)
+        skipPreviousButton = findViewById(R.id.play_music_previous)
 
         songTitle.isSelected = true
         artistNames.isSelected = true
@@ -123,6 +129,20 @@ class SongPlayerActivity : AppCompatActivity() {
         setPlayPauseButtonListener()
         setRetractButtonListener()
         setIsFavoriteButtonListener()
+        setSkipNextButtonListener()
+        setSkipPreviousButtonListener()
+    }
+
+    private fun setSkipPreviousButtonListener() {
+        skipPreviousButton.setOnClickListener() {
+            songPlayerViewModel.skipPreviousSong()
+        }
+    }
+
+    private fun setSkipNextButtonListener() {
+        skipNextButton.setOnClickListener() {
+            songPlayerViewModel.skipNextSong()
+        }
     }
 
     private fun setIsFavoriteButtonListener() {
@@ -138,9 +158,11 @@ class SongPlayerActivity : AppCompatActivity() {
                     textFrom.text = formatTimestampToMMSS(progress)
                 }
             }
+
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
                 shouldUpdateSeekBar = false
             }
+
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
                 seekBar?.let {
                     songPlayerViewModel.setCurrentPlayerPosition(it.progress)
@@ -174,15 +196,15 @@ class SongPlayerActivity : AppCompatActivity() {
     private fun subscribeToIsPlayingLiveData() {
         songPlayerViewModel.isPlaying.observe(this@SongPlayerActivity) { isPlaying ->
             when {
-                isPlaying -> playPauseButton.setBackgroundResource(R.drawable.ic_pause_circle)
-                else -> playPauseButton.setBackgroundResource(R.drawable.ic_play_circle)
+                isPlaying -> playPauseButton.setImageResource(R.drawable.ic_pause_circle_90)
+                else -> playPauseButton.setImageResource(R.drawable.ic_play_circle_90)
             }
         }
     }
 
     private fun subscribeToCurrentSongPositionLiveData() {
-        songPlayerViewModel.currentSongPosition.observe(this@SongPlayerActivity) {
-            currentPosition -> if (shouldUpdateSeekBar) {
+        songPlayerViewModel.currentSongPosition.observe(this@SongPlayerActivity) { currentPosition ->
+            if (shouldUpdateSeekBar) {
                 seekBar.progress = currentPosition
                 textFrom.text = formatTimestampToMMSS(currentPosition)
             }
@@ -201,8 +223,8 @@ class SongPlayerActivity : AppCompatActivity() {
             textTo.text = formatTimestampToMMSS(song.duration.toInt())
 
             when {
-                song.isFavorite -> favoriteButton.setBackgroundResource(R.drawable.ic_liked)
-                else -> favoriteButton.setBackgroundResource(R.drawable.ic_like)
+                song.isFavorite -> favoriteButton.setImageResource(R.drawable.ic_liked_30)
+                else -> favoriteButton.setImageResource(R.drawable.ic_like_30)
             }
         }
     }

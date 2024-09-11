@@ -1,11 +1,14 @@
 package com.example.cs426_magicmusic.ui.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import com.example.cs426_magicmusic.data.entity.Song
 import com.example.cs426_magicmusic.others.Constants
+import com.example.cs426_magicmusic.others.Constants.NEXT_SONG
+import com.example.cs426_magicmusic.others.Constants.PREVIOUS_SONG
 import com.example.cs426_magicmusic.service.musicplayer.MusicPlayerService
 import java.lang.ref.WeakReference
 
@@ -60,6 +63,7 @@ class SongPlayerViewModel : ViewModel() {
         }
         isPlayingObserver = Observer {
             _isPlaying.value = it
+            Log.d("SongPlayerViewModel", "isPlaying: $it")
         }
         currentPositionObserver = Observer {
             _currentSongPosition.value = it
@@ -101,5 +105,17 @@ class SongPlayerViewModel : ViewModel() {
 //            song.isFavorite = !song.isFavorite
 //            _currentSong.value = song
 //        }
+    }
+
+    fun skipPreviousSong() {
+        musicPlayerServiceRef?.get()?.let { musicService ->
+            musicService.playNextSong(PREVIOUS_SONG)
+        }
+    }
+
+    fun skipNextSong() {
+        musicPlayerServiceRef?.get()?.let { musicService ->
+            musicService.playNextSong(NEXT_SONG)
+        }
     }
 }

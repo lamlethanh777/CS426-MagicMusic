@@ -62,10 +62,10 @@
     </LinearLayout>
 
     <ImageButton
-        android:layout_width="28dp"
-        android:layout_height="28dp"
-        android:background="@drawable/ic_more"
-        android:foreground="?selectableItemBackground"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:src="@drawable/ic_more_32"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

@@ -4,7 +4,6 @@ import android.content.ContentUris
 import android.content.Context
 import android.provider.MediaStore
 import android.util.Log
-import android.util.Size
 import com.example.cs426_magicmusic.data.entity.Album
 import com.example.cs426_magicmusic.data.entity.Artist
 import com.example.cs426_magicmusic.data.entity.Song
@@ -78,8 +77,7 @@ object LocalDBSynchronizer {
                     val songTitle = cursor.getString(titleIndex)
                     val path = cursor.getString(pathIndex)
                     val duration = cursor.getLong(durationIndex)
-                    val artistNames = cursor.getString(artistIndex)
-                        .let { v -> if (v == "<unknown>") null else v }
+                    val artistNames = cursor.getString(artistIndex)?.takeIf { it != "<unknown>" }
                     val albumName = cursor.getString(albumIndex)
 
                     val uri = ContentUris.withAppendedId(
@@ -104,9 +102,7 @@ object LocalDBSynchronizer {
                     _albumsWithSongsList[album]?.add(song)
 
                     // Handle multiple artists
-                    val artists = artistNames?.split(",")
-                        ?.map { Artist(it.trim()) }
-                        ?: emptyList()
+                    val artists = artistNames?.split(",")?.map { Artist(it.trim()) } ?: emptyList()
 
                     for (artist in artists) {
                         if (_artistWithSongsList[artist] == null) {
@@ -115,7 +111,7 @@ object LocalDBSynchronizer {
                         _artistWithSongsList[artist]?.add(song)
                     }
                 }
-            }
+            } ?: Log.e("LocalDBSynchronizer", "Cursor is null")
         }
     }
 

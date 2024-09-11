@@ -57,8 +57,9 @@ class LibraryFragment : Fragment() {
         val view: View = inflater.inflate(R.layout.fragment_library, container, false)
         libraryViewModel.fetchSongs()
 
-        Log.d("Songs at LibraryFragment initialization",
-            "${libraryViewModel.songs.value?.size?:0}"
+        Log.d(
+            "Songs at LibraryFragment initialization",
+            "${libraryViewModel.songs.value?.size ?: 0}"
         )
         return view
     }
@@ -87,8 +88,9 @@ class LibraryFragment : Fragment() {
         libraryViewModel.songs.observe(viewLifecycleOwner) {
             songItemAdapter?.songList = it
         }
-        Log.d("Songs at LibraryFragment subscribeToObservers",
-            "${libraryViewModel.songs.value?.size?:0}"
+        Log.d(
+            "Songs at LibraryFragment subscribeToObservers",
+            "${libraryViewModel.songs.value?.size ?: 0}"
         )
     }
 
