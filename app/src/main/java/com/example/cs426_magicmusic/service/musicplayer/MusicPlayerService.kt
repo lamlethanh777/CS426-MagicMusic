@@ -16,7 +16,6 @@ import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.LiveData
 import com.example.cs426_magicmusic.R
 import com.example.cs426_magicmusic.data.entity.Song
-import com.example.cs426_magicmusic.others.Constants
 import com.example.cs426_magicmusic.others.Constants.ACTION_PLAY_PAUSE
 import com.example.cs426_magicmusic.others.Constants.ACTION_SKIP_NEXT
 import com.example.cs426_magicmusic.others.Constants.ACTION_SKIP_PREVIOUS
@@ -55,6 +54,10 @@ class MusicPlayerService : LifecycleService() {
         return binder
     }
 
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        return START_STICKY
+    }
+
     override fun onCreate() {
         super.onCreate()
         musicPlayer = MusicPlayer(this)
@@ -74,17 +77,17 @@ class MusicPlayerService : LifecycleService() {
 
     fun playCurrent() {
         musicPlayer.playCurrent()
-        createOrUpdateNotification()
+        createOneTimeNotification()
     }
 
     fun playNext() {
         musicPlayer.playNext()
-        createOrUpdateNotification()
+        createOneTimeNotification()
     }
 
     fun playPrevious() {
         musicPlayer.playPrevious()
-        createOrUpdateNotification()
+        createOneTimeNotification()
     }
 
     fun pause() {
@@ -126,12 +129,10 @@ class MusicPlayerService : LifecycleService() {
         stopSelf()
     }
 
-    private fun createOrUpdateNotification() {
+    private fun createOneTimeNotification() {
         if (!isPlayingSong) {
             createNotification()
             isPlayingSong = true
-        } else {
-            updateNotification(musicPlayer.getCurrentSong()!!)
         }
     }
 
@@ -191,6 +192,10 @@ class MusicPlayerService : LifecycleService() {
             .setOngoing(true)
 
         startForeground(PLAYER_NOTIFICATION_ID, notificationBuilder.build())
+
+        musicPlayer.currentSongLiveData.observe(this) {
+            updateNotification(it)
+        }
     }
 
     private fun updateNotification(song: Song) {
@@ -210,6 +215,6 @@ class MusicPlayerService : LifecycleService() {
             )
         }
 
-        notificationManager.notify(1, notificationBuilder.build())
+        notificationManager.notify(PLAYER_NOTIFICATION_ID, notificationBuilder.build())
     }
 }
