@@ -36,6 +36,7 @@ class LibraryFragment : Fragment() {
     private var artistItemAdapter: ArtistItemAdapter? = null
     private var playlistItemAdapter: PlaylistItemAdapter? = null
     private var displayOptionAdapter: DisplayOptionAdapter? = null
+    private lateinit var lastFetchAction: (() -> Unit)
     private lateinit var libraryViewModel: LibraryViewModel
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
     private lateinit var musicListRecyclerView: RecyclerView
@@ -69,6 +70,7 @@ class LibraryFragment : Fragment() {
         libraryViewModel.fetchAllAlbums()
         libraryViewModel.fetchAllArtists()
         libraryViewModel.fetchAllPlaylists()
+        lastFetchAction = { libraryViewModel.fetchSongs() }
 
         Log.d(
             "Songs at LibraryFragment initialization",
@@ -105,10 +107,7 @@ class LibraryFragment : Fragment() {
         swipeRefreshLayout.setOnRefreshListener {
             lifecycleScope.launch {
                 LocalDBSynchronizer.synchronizeDatabase(requireContext())
-                libraryViewModel.fetchSongs()
-                libraryViewModel.fetchAllAlbums()
-                libraryViewModel.fetchAllArtists()
-                libraryViewModel.fetchAllPlaylists()
+                lastFetchAction.invoke()
                 swipeRefreshLayout.isRefreshing = false
             }
         }
@@ -185,18 +184,23 @@ class LibraryFragment : Fragment() {
         Log.d("LibraryFragment", "onClickDisplayOption: $displayOption")
         when (displayOption) {
             "Songs" -> {
+                lastFetchAction = { libraryViewModel.fetchSongs() }
                 musicListRecyclerView.adapter = songItemAdapter
             }
             "Albums" -> {
+                lastFetchAction = { libraryViewModel.fetchAllAlbums() }
                 musicListRecyclerView.adapter = albumItemAdapter
             }
             "Artists" -> {
+                lastFetchAction = { libraryViewModel.fetchAllArtists() }
                 musicListRecyclerView.adapter = artistItemAdapter
             }
             "Playlists" -> {
+                lastFetchAction = { libraryViewModel.fetchAllPlaylists() }
                 musicListRecyclerView.adapter = playlistItemAdapter
             }
         }
+        lastFetchAction.invoke()
     }
 
     private fun setUpMusicListRecyclerView(view: View) {
@@ -220,14 +224,23 @@ class LibraryFragment : Fragment() {
 
     private fun onClickAlbumItem(album: Album?) {
         Log.d("LibraryFragment", "onClickAlbumItem: ${album?.albumName}")
+        lastFetchAction = { libraryViewModel.fetchSongsInAlbum(album!!) }
+        musicListRecyclerView.adapter = songItemAdapter
+        lastFetchAction.invoke()
     }
 
     private fun onClickArtistItem(artist: Artist?) {
         Log.d("LibraryFragment", "onClickArtistItem: ${artist?.artistName}")
+        lastFetchAction = { libraryViewModel.fetchSongsOfArtist(artist!!) }
+        musicListRecyclerView.adapter = songItemAdapter
+        lastFetchAction.invoke()
     }
 
     private fun onClickPlaylistItem(playlist: Playlist?) {
         Log.d("LibraryFragment", "onClickPlaylistItem: ${playlist?.playlistName}")
+        lastFetchAction = { libraryViewModel.fetchSongsInPlaylist(playlist!!) }
+        musicListRecyclerView.adapter = songItemAdapter
+        lastFetchAction.invoke()
     }
 
     companion object {

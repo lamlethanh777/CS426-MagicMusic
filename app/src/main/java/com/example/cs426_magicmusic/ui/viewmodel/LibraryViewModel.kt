@@ -66,15 +66,33 @@ class LibraryViewModel(
         }
     }
 
+    fun fetchSongsInAlbum(album: Album) {
+        viewModelScope.launch {
+            _songs.value = albumRepository.fetchSongsInAlbum(album.albumName)
+        }
+    }
+
     fun fetchAllArtists() {
         viewModelScope.launch {
             _artists.value = artistRepository.fetchArtists()
         }
     }
 
+    fun fetchSongsOfArtist(artist: Artist) {
+        viewModelScope.launch {
+            _songs.value = artistRepository.fetchSongsOfArtist(artist.artistName)
+        }
+    }
+
     fun fetchAllPlaylists() {
         viewModelScope.launch {
             _playlists.value = playlistRepository.fetchPlaylists()
+        }
+    }
+
+    fun fetchSongsInPlaylist(playlist: Playlist) {
+        viewModelScope.launch {
+            _songs.value = playlistRepository.fetchSongsInPlaylist(playlist)
         }
     }
 
