@@ -30,4 +30,8 @@ interface PlaylistDao {
     @Transaction
     @Query("SELECT * FROM playlists")
     suspend fun fetchPlaylists(): List<Playlist>
+
+    @Transaction
+    @Query("SELECT * FROM playlists ORDER BY playlistName")
+    suspend fun fetchPlaylistsOrderByName(): List<Playlist>
 }

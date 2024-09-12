@@ -6,6 +6,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
+import android.widget.PopupMenu
 import android.widget.ToggleButton
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -40,6 +42,14 @@ class LibraryFragment : Fragment() {
     private lateinit var libraryViewModel: LibraryViewModel
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
     private lateinit var musicListRecyclerView: RecyclerView
+    private lateinit var popupButton: ImageButton
+    private lateinit var popupSongs: () -> Unit
+    private lateinit var popupSongsInAlbum: (Album) -> Unit
+    private lateinit var popupSongsOfArtist: (Artist) -> Unit
+    private lateinit var popupSongsInPlaylist: (Playlist) -> Unit
+    private lateinit var popupAlbums: () -> Unit
+    private lateinit var popupArtists: () -> Unit
+    private lateinit var popupPlaylists: () -> Unit
 
     private fun initViewModel() {
         val appDatabase = AppDatabase.getDatabase(requireContext())
@@ -96,6 +106,7 @@ class LibraryFragment : Fragment() {
 
         swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout)
 
+        setUpPopupMenu(view)
         setUpMusicListRecyclerView(view)
         setUpDisplayOptionRecyclerView(view)
         setUpToggleButton(view)
@@ -186,18 +197,22 @@ class LibraryFragment : Fragment() {
             "Songs" -> {
                 lastFetchAction = { libraryViewModel.fetchSongs() }
                 musicListRecyclerView.adapter = songItemAdapter
+                popupButton.setOnClickListener { popupSongs.invoke() }
             }
             "Albums" -> {
                 lastFetchAction = { libraryViewModel.fetchAllAlbums() }
                 musicListRecyclerView.adapter = albumItemAdapter
+                popupButton.setOnClickListener { popupAlbums.invoke() }
             }
             "Artists" -> {
                 lastFetchAction = { libraryViewModel.fetchAllArtists() }
                 musicListRecyclerView.adapter = artistItemAdapter
+                popupButton.setOnClickListener { popupArtists.invoke() }
             }
             "Playlists" -> {
                 lastFetchAction = { libraryViewModel.fetchAllPlaylists() }
                 musicListRecyclerView.adapter = playlistItemAdapter
+                popupButton.setOnClickListener { popupPlaylists.invoke() }
             }
         }
         lastFetchAction.invoke()
@@ -227,6 +242,7 @@ class LibraryFragment : Fragment() {
         lastFetchAction = { libraryViewModel.fetchSongsInAlbum(album!!) }
         musicListRecyclerView.adapter = songItemAdapter
         lastFetchAction.invoke()
+        popupButton.setOnClickListener { popupSongsInAlbum.invoke(album!!) }
     }
 
     private fun onClickArtistItem(artist: Artist?) {
@@ -234,6 +250,7 @@ class LibraryFragment : Fragment() {
         lastFetchAction = { libraryViewModel.fetchSongsOfArtist(artist!!) }
         musicListRecyclerView.adapter = songItemAdapter
         lastFetchAction.invoke()
+        popupButton.setOnClickListener { popupSongsOfArtist.invoke(artist!!) }
     }
 
     private fun onClickPlaylistItem(playlist: Playlist?) {
@@ -241,6 +258,125 @@ class LibraryFragment : Fragment() {
         lastFetchAction = { libraryViewModel.fetchSongsInPlaylist(playlist!!) }
         musicListRecyclerView.adapter = songItemAdapter
         lastFetchAction.invoke()
+        popupButton.setOnClickListener { popupSongsInPlaylist.invoke(playlist!!) }
+    }
+
+    private fun setUpPopupMenu(view: View) {
+        popupButton = view.findViewById(R.id.library_music_list_more_button)
+        popupSongs = {
+            val popupMenu = PopupMenu(requireContext(), popupButton)
+            popupMenu.menuInflater.inflate(R.menu.song_sort_menu, popupMenu.menu)
+            popupMenu.setOnMenuItemClickListener { menuItem ->
+                when (menuItem.itemId) {
+                    R.id.popup_menu_sort_by_title -> {
+                        lastFetchAction = { libraryViewModel.fetchSongsOrderByTitle() }
+                    }
+
+                    R.id.popup_menu_sort_by_artist -> {
+                        lastFetchAction = { libraryViewModel.fetchSongsOrderByArtistNames() }
+                    }
+                }
+                lastFetchAction.invoke()
+                true
+            }
+            popupMenu.show()
+        }
+        popupSongsInAlbum = { album ->
+            val popupMenu = PopupMenu(requireContext(), popupButton)
+            popupMenu.menuInflater.inflate(R.menu.song_sort_menu, popupMenu.menu)
+            popupMenu.setOnMenuItemClickListener { menuItem ->
+                when (menuItem.itemId) {
+                    R.id.popup_menu_sort_by_title -> {
+                        lastFetchAction = { libraryViewModel.fetchSongsInAlbumOrderByTitle(album) }
+                    }
+
+                    R.id.popup_menu_sort_by_artist -> {
+                        lastFetchAction = { libraryViewModel.fetchSongsInAlbumOrderByArtistNames(album) }
+                    }
+                }
+                lastFetchAction.invoke()
+                true
+            }
+            popupMenu.show()
+        }
+        popupSongsOfArtist = { artist ->
+            val popupMenu = PopupMenu(requireContext(), popupButton)
+            popupMenu.menuInflater.inflate(R.menu.song_sort_menu, popupMenu.menu)
+            popupMenu.setOnMenuItemClickListener { menuItem ->
+                when (menuItem.itemId) {
+                    R.id.popup_menu_sort_by_title -> {
+                        lastFetchAction = { libraryViewModel.fetchSongsOfArtistOrderByTitle(artist) }
+                    }
+
+                    R.id.popup_menu_sort_by_artist -> {
+                        lastFetchAction = { libraryViewModel.fetchSongsOfArtist(artist) }
+                    }
+                }
+                lastFetchAction.invoke()
+                true
+            }
+            popupMenu.show()
+        }
+        popupSongsInPlaylist = { playlist ->
+            val popupMenu = PopupMenu(requireContext(), popupButton)
+            popupMenu.menuInflater.inflate(R.menu.song_sort_menu, popupMenu.menu)
+            popupMenu.setOnMenuItemClickListener { menuItem ->
+                when (menuItem.itemId) {
+                    R.id.popup_menu_sort_by_title -> {
+                        lastFetchAction = { libraryViewModel.fetchSongsInPlaylistOrderByTitle(playlist) }
+                    }
+
+                    R.id.popup_menu_sort_by_artist -> {
+                        lastFetchAction = { libraryViewModel.fetchSongsInPlaylistOrderByArtistNames(playlist) }
+                    }
+                }
+                lastFetchAction.invoke()
+                true
+            }
+            popupMenu.show()
+        }
+        popupAlbums = {
+            val popupMenu = PopupMenu(requireContext(), popupButton)
+            popupMenu.menuInflater.inflate(R.menu.album_sort_menu, popupMenu.menu)
+            popupMenu.setOnMenuItemClickListener { menuItem ->
+                when (menuItem.itemId) {
+                    R.id.popup_menu_sort_by_name -> {
+                        lastFetchAction = { libraryViewModel.fetchAlbumsOrderByName() }
+                    }
+                }
+                lastFetchAction.invoke()
+                true
+            }
+            popupMenu.show()
+        }
+        popupArtists = {
+            val popupMenu = PopupMenu(requireContext(), popupButton)
+            popupMenu.menuInflater.inflate(R.menu.artist_sort_menu, popupMenu.menu)
+            popupMenu.setOnMenuItemClickListener { menuItem ->
+                when (menuItem.itemId) {
+                    R.id.popup_menu_sort_by_name -> {
+                        lastFetchAction = { libraryViewModel.fetchArtistsOrderByName() }
+                    }
+                }
+                lastFetchAction.invoke()
+                true
+            }
+            popupMenu.show()
+        }
+        popupPlaylists = {
+            val popupMenu = PopupMenu(requireContext(), popupButton)
+            popupMenu.menuInflater.inflate(R.menu.playlist_sort_menu, popupMenu.menu)
+            popupMenu.setOnMenuItemClickListener { menuItem ->
+                when (menuItem.itemId) {
+                    R.id.popup_menu_sort_by_name -> {
+                        lastFetchAction = { libraryViewModel.fetchPlaylistsOrderByName() }
+                    }
+                }
+                lastFetchAction.invoke()
+                true
+            }
+            popupMenu.show()
+        }
     }
 
     companion object {

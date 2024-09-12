@@ -39,6 +39,18 @@ class LibraryViewModel(
         }
     }
 
+    fun fetchSongsOrderByTitle() {
+        viewModelScope.launch {
+            _songs.value = songRepository.fetchSongsOrderByTitle()
+        }
+    }
+
+    fun fetchSongsOrderByArtistNames() {
+        viewModelScope.launch {
+            _songs.value = songRepository.fetchSongsOrderByArtistNames()
+        }
+    }
+
     fun updateSong(song: Song) {
         viewModelScope.launch {
             songRepository.upsertSong(song)
@@ -66,9 +78,27 @@ class LibraryViewModel(
         }
     }
 
+    fun fetchAlbumsOrderByName() {
+        viewModelScope.launch {
+            _albums.value = albumRepository.fetchAlbumsOrderByName()
+        }
+    }
+
     fun fetchSongsInAlbum(album: Album) {
         viewModelScope.launch {
             _songs.value = albumRepository.fetchSongsInAlbum(album.albumName)
+        }
+    }
+
+    fun fetchSongsInAlbumOrderByTitle(album: Album) {
+        viewModelScope.launch {
+            _songs.value = albumRepository.fetchSongsInAlbumOrderByTitle(album.albumName)
+        }
+    }
+
+    fun fetchSongsInAlbumOrderByArtistNames(album: Album) {
+        viewModelScope.launch {
+            _songs.value = albumRepository.fetchSongsInAlbumOrderByArtistNames(album.albumName)
         }
     }
 
@@ -78,9 +108,21 @@ class LibraryViewModel(
         }
     }
 
+    fun fetchArtistsOrderByName() {
+        viewModelScope.launch {
+            _artists.value = artistRepository.fetchArtistsOrderByName()
+        }
+    }
+
     fun fetchSongsOfArtist(artist: Artist) {
         viewModelScope.launch {
             _songs.value = artistRepository.fetchSongsOfArtist(artist.artistName)
+        }
+    }
+
+    fun fetchSongsOfArtistOrderByTitle(artist: Artist) {
+        viewModelScope.launch {
+            _songs.value = artistRepository.fetchSongsOfArtistOrderByTitle(artist.artistName)
         }
     }
 
@@ -90,9 +132,27 @@ class LibraryViewModel(
         }
     }
 
+    fun fetchPlaylistsOrderByName() {
+        viewModelScope.launch {
+            _playlists.value = playlistRepository.fetchPlaylistsOrderByName()
+        }
+    }
+
     fun fetchSongsInPlaylist(playlist: Playlist) {
         viewModelScope.launch {
             _songs.value = playlistRepository.fetchSongsInPlaylist(playlist)
+        }
+    }
+
+    fun fetchSongsInPlaylistOrderByTitle(playlist: Playlist) {
+        viewModelScope.launch {
+            _songs.value = playlistRepository.fetchSongsInPlaylistOrderByTitle(playlist)
+        }
+    }
+
+    fun fetchSongsInPlaylistOrderByArtistNames(playlist: Playlist) {
+        viewModelScope.launch {
+            _songs.value = playlistRepository.fetchSongsInPlaylistOrderByArtistNames(playlist)
         }
     }
 

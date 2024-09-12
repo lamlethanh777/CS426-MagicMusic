@@ -10,8 +10,16 @@ class ArtistRepository (private val appDatabase: AppDatabase) {
         return appDatabase.artistDao().fetchArtists()
     }
 
+    suspend fun fetchArtistsOrderByName(): List<Artist> {
+        return appDatabase.artistDao().fetchArtistsOrderByName()
+    }
+
     suspend fun fetchSongsOfArtist(artistName: String): List<Song> {
         return appDatabase.artistSongDao().fetchSongsOfArtist(artistName)
+    }
+
+    suspend fun fetchSongsOfArtistOrderByTitle(artistName: String): List<Song> {
+        return appDatabase.artistSongDao().fetchSongsOfArtistOrderByTitle(artistName)
     }
 
     suspend fun insertAllArtistsWithSongs(artistWithSongsList: MutableMap<Artist,

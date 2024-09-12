@@ -37,4 +37,22 @@ interface PlaylistSongDao {
                 " WHERE playlists_songs.playlistName = :playlistName"
     )
     suspend fun fetchSongsInPlaylist(playlistName: String): List<Song>
+
+    @Transaction
+    @Query(
+        "SELECT * FROM songs" +
+                " INNER JOIN playlists_songs ON songs.path = playlists_songs.songPath " +
+                " WHERE playlists_songs.playlistName = :playlistName" +
+                " ORDER BY songs.title"
+    )
+    suspend fun fetchSongsInPlaylistOrderByTitle(playlistName: String): List<Song>
+
+    @Transaction
+    @Query(
+        "SELECT * FROM songs" +
+                " INNER JOIN playlists_songs ON songs.path = playlists_songs.songPath " +
+                " WHERE playlists_songs.playlistName = :playlistName" +
+                " ORDER BY songs.artistNames"
+    )
+    suspend fun fetchSongsInPlaylistOrderByArtistNames(playlistName: String): List<Song>
 }

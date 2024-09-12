@@ -44,4 +44,12 @@ interface SongDao {
     @Transaction
     @Query("SELECT * FROM songs where path = :path")
     suspend fun fetchSongByPath(path: String): Song?
+
+    @Transaction
+    @Query("SELECT * FROM songs ORDER BY title")
+    suspend fun fetchSongsOrderByTitle(): List<Song>
+
+    @Transaction
+    @Query("SELECT * FROM songs ORDER BY artistNames")
+    suspend fun fetchSongsOrderByArtistNames(): List<Song>
 }

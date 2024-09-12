@@ -12,6 +12,14 @@ class SongRepository (private val appDatabase: AppDatabase) {
         return appDatabase.songDao().fetchSongByTitle(songTitle)
     }
 
+    suspend fun fetchSongsOrderByTitle(): List<Song> {
+        return appDatabase.songDao().fetchSongsOrderByTitle()
+    }
+
+    suspend fun fetchSongsOrderByArtistNames(): List<Song> {
+        return appDatabase.songDao().fetchSongsOrderByArtistNames()
+    }
+
     suspend fun insertAllSongs(songs: List<Song>) {
         appDatabase.songDao().insertAll(*songs.map { it }.toTypedArray())
     }
