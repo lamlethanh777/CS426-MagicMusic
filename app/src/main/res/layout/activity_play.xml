@@ -24,16 +24,6 @@
             android:layout_marginTop="8dp"
             android:layout_marginStart="8dp"/>
 
-        <ImageButton
-            android:id="@+id/equalizerButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_retract_player"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:padding="12dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginStart="8dp"/>
-
         <androidx.cardview.widget.CardView
             android:layout_width="300dp"
             android:layout_height="300dp"
@@ -147,7 +137,7 @@
             android:orientation="horizontal"
             android:layout_gravity="center_horizontal"
             android:gravity="center">
-            
+
             <ImageButton
                 android:id="@+id/play_music_previous"
                 android:layout_width="40dp"
@@ -177,6 +167,18 @@
             android:layout_marginTop="30dp"
             android:gravity="center"
             android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/play_music_lyric"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginHorizontal="10dp"
+                android:src="@drawable/ic_lyrics_enabled_30"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
             <ImageButton
                 android:id="@+id/play_music_repeat"
                 android:layout_width="32dp"
@@ -207,6 +209,18 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageButton
+                android:id="@+id/play_music_equalizer"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginHorizontal="10dp"
+                android:src="@drawable/ic_equalizer_30"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
         </LinearLayout>
     </LinearLayout>
 

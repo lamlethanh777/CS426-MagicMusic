@@ -314,17 +314,17 @@ class GenerateAudioViewModel : ViewModel() {
     }
 
 
-    private fun downloadLyric(fileUrl: String?, index: Int = 0, title:String = "") {
+    private fun downloadLyric(fileUrl: String?, index: Int = 0, title: String = "") {
         // Replacing '\n' in the lyrics string with actual new line characters
         val formattedLyric = fileUrl
             ?.replace("\\n", System.lineSeparator())  // Replace \n with a single new line
             ?.replace("[", System.lineSeparator() + "[")  // Replace \n[ with double new line and [
 
 
-
         // Creating the file name using the index
-        val fileName = "${title} - v${index+1}.txt"
-        val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val fileName = "${title} - v${index + 1}.txt"
+        val downloadsDir =
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         val musicFolder = File(downloadsDir, "magicmusic/lyric")
         if (!musicFolder.exists()) {
             musicFolder.mkdirs()  // Create the directory if it doesn't exist
@@ -345,7 +345,7 @@ class GenerateAudioViewModel : ViewModel() {
         }
     }
 
-    private fun downloadAudio(fileUrl: String, index: Int = 0, title:String = "") {
+    private fun downloadAudio(fileUrl: String, index: Int = 0, title: String = "") {
         statusText.postValue("Preparing_${index} to download audio file...")
 
         Log.e("Prepare_${index} downloading", fileUrl)
@@ -355,11 +355,13 @@ class GenerateAudioViewModel : ViewModel() {
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val response = client.newCall(request).execute()  // Synchronous call in background thread
+                val response =
+                    client.newCall(request).execute()  // Synchronous call in background thread
                 if (response.isSuccessful) {
-                    val fileName = "${title} - v${index+1}.mp3"
+                    val fileName = "${title} - v${index + 1}.mp3"
 //                    val fileName = "${title} - v${index+1} ~ loading...mp3"
-                    val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                    val downloadsDir =
+                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
                     val musicFolder = File(downloadsDir, "magicmusic/audio")
 
                     if (!musicFolder.exists()) {
@@ -381,7 +383,7 @@ class GenerateAudioViewModel : ViewModel() {
                     }
                     triggerToast("Completed: $fileName")
 
-                    val renamedFile = File(musicFolder, "${title} - v${index+1}.mp3")
+                    val renamedFile = File(musicFolder, "${title} - v${index + 1}.mp3")
                     file.renameTo(renamedFile)
 
                     // Update UI when download is done

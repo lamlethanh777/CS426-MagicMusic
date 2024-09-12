@@ -15,4 +15,5 @@ data class Song(
     val duration: Long,
     val artistNames: String,
     val isFavorite: Boolean = false,
+    val lyricPath: String
 ) : Parcelable

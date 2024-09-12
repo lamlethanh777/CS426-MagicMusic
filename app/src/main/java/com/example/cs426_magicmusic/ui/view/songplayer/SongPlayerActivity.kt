@@ -47,6 +47,7 @@ class SongPlayerActivity : AppCompatActivity() {
     private lateinit var shuffleButton: ImageButton
     private lateinit var alarmOffButton: ImageButton
     private lateinit var equalizerButton: ImageButton
+    private lateinit var lyricButton: ImageButton
 
     private lateinit var musicPlayerService: MusicPlayerService
 
@@ -58,9 +59,6 @@ class SongPlayerActivity : AppCompatActivity() {
 
     private val songPlayerViewModel = SongPlayerViewModel()
 
-    /**
-     * Service connection: bind the music service to the activity
-     */
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             val binder = service as MusicPlayerService.LocalBinder
@@ -89,9 +87,6 @@ class SongPlayerActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Function to handle new incoming intent (e.g., play new song)
-     */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         incomingIntentAction = intent.action
@@ -131,10 +126,11 @@ class SongPlayerActivity : AppCompatActivity() {
         retractButton = findViewById(R.id.play_retract_button)
         skipNextButton = findViewById(R.id.play_music_next)
         skipPreviousButton = findViewById(R.id.play_music_previous)
-        equalizerButton = findViewById(R.id.equalizerButton)
         repeatButton = findViewById(R.id.play_music_repeat)
         shuffleButton = findViewById(R.id.play_music_shuffle)
         alarmOffButton = findViewById(R.id.play_music_alarm_off)
+        equalizerButton = findViewById(R.id.play_music_equalizer)
+        lyricButton = findViewById(R.id.play_music_lyric)
 
         songTitle.isSelected = true
         artistNames.isSelected = true
@@ -167,6 +163,15 @@ class SongPlayerActivity : AppCompatActivity() {
             songPlayerViewModel.setNextRepeatMode()
         }
         setEqualizerListener()
+        setShowLyricListener()
+    }
+
+    private fun setShowLyricListener() {
+        lyricButton.setOnClickListener {
+            val lyrics = songPlayerViewModel.getSongLyricText()
+            val bottomSheetFragment = LyricBottomSheetFragment.newInstance(lyrics)
+            bottomSheetFragment.show(supportFragmentManager, bottomSheetFragment.tag)
+        }
     }
 
     private fun setEqualizerListener() {
@@ -220,9 +225,6 @@ class SongPlayerActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Function to set the retract button listener (return from SongPlayerActivity -> MainActivity)
-     */
     private fun setRetractButtonListener() {
         retractButton.setOnClickListener {
             finish()
@@ -310,10 +312,7 @@ class SongPlayerActivity : AppCompatActivity() {
 
         // Start the music service
         startService(intent)
-
-        // Bind to the service
         bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
-
         Log.d("SongPlayerActivity", "Music service started")
     }
 

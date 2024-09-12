@@ -355,10 +355,13 @@ class GenerateAudioFragment : Fragment() {
         }
         val file = File(filePath)
         if (file.exists()) {
-            val inputStream = FileInputStream(file)
-            val reader = InputStreamReader(inputStream, Charset.forName("UTF-8"))
-            val lyrics = reader.readText()
-            reader.close()
+
+//            val inputStream = FileInputStream(file)
+//            val reader = InputStreamReader(inputStream, Charset.forName("UTF-8"))
+//            val lyrics = reader.readText()
+//            reader.close()
+
+            val lyrics = file.readText()
 
             // Set the lyrics text to the TextView
             lyricTextView.text = lyrics
