@@ -181,6 +181,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     override fun onStart() {
         super.onStart()
         val intent = Intent(this, MusicPlayerService::class.java)
+
         // Start the music service
         startService(intent)
 

@@ -1,17 +1,21 @@
 package com.example.cs426_magicmusic.service.musicplayer
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.os.Binder
 import android.os.IBinder
 import android.util.Log
 import android.widget.RemoteViews
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.LiveData
 import com.example.cs426_magicmusic.R
@@ -69,7 +73,12 @@ class MusicPlayerService : LifecycleService() {
             addAction(ACTION_SKIP_NEXT)
             addAction(ACTION_SKIP_PREVIOUS)
         }
-        registerReceiver(musicBroadcastReceiver, filter)
+        ContextCompat.registerReceiver(
+            this,
+            musicBroadcastReceiver,
+            filter,
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
         isReceiverRegistered = true
 
         Log.d("MusicPlayerService", "onCreate done")
@@ -122,6 +131,8 @@ class MusicPlayerService : LifecycleService() {
         }
         stopForegroundService()
         musicPlayer.release()
+
+        Log.d("MusicPlayerService", "onDestroy done")
     }
 
     private fun stopForegroundService() {
@@ -194,11 +205,15 @@ class MusicPlayerService : LifecycleService() {
         startForeground(PLAYER_NOTIFICATION_ID, notificationBuilder.build())
 
         musicPlayer.currentSongLiveData.observe(this) {
-            updateNotification(it)
+            updateSongInformationOfNotification(it)
+        }
+
+        musicPlayer.isPlayingLiveData.observe(this) {
+            updatePlayPauseButtonOfNotification(it)
         }
     }
 
-    private fun updateNotification(song: Song) {
+    private fun updateSongInformationOfNotification(song: Song) {
         val notificationManager = NotificationManagerCompat.from(this)
 
         remoteViews.setTextViewText(R.id.notification_song_title, song.title)
@@ -212,6 +227,22 @@ class MusicPlayerService : LifecycleService() {
             remoteViews.setImageViewResource(
                 R.id.notification_song_image,
                 R.drawable.ic_music_note
+            )
+        }
+
+        notificationManager.notify(PLAYER_NOTIFICATION_ID, notificationBuilder.build())
+    }
+
+    private fun updatePlayPauseButtonOfNotification(isPlay: Boolean) {
+        val notificationManager = NotificationManagerCompat.from(this)
+
+        if (isPlay) {
+            remoteViews.setImageViewResource(
+                R.id.notification_play_pause, R.drawable.ic_pause_circle_40
+            )
+        } else {
+            remoteViews.setImageViewResource(
+                R.id.notification_play_pause, R.drawable.ic_play_circle_40
             )
         }
 

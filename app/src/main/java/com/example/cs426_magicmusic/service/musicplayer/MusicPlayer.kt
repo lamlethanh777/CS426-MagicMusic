@@ -129,10 +129,6 @@ class MusicPlayer(private val service: LifecycleService) {
         _shuffleModeLiveData.value = exoPlayer.shuffleModeEnabled
     }
 
-    fun getCurrentSong(): Song? {
-        return _currentSongLiveData.value
-    }
-
     fun seekTo(position: Int) {
         val duration = exoPlayer.duration.toInt()
         val safePosition = when {

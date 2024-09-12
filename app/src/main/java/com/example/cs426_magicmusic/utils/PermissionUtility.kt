@@ -14,11 +14,11 @@ import com.vmadalin.easypermissions.EasyPermissions
 object PermissionUtility {
 
     private val permissions = mutableListOf(
-        Manifest.permission.POST_NOTIFICATIONS,
         Manifest.permission.FOREGROUND_SERVICE
     )
 
     fun hasEnoughPermission(context: Context): Boolean {
+
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {
             permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
         } else {
