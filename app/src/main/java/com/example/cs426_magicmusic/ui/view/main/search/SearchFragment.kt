@@ -13,7 +13,9 @@ import android.widget.ImageView
 import android.widget.SearchView
 import android.widget.Spinner
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.cs426_magicmusic.R
@@ -26,6 +28,7 @@ import com.example.cs426_magicmusic.data.source.db.AppDatabase
 import com.example.cs426_magicmusic.data.source.db.synchronize.LocalDBSynchronizer
 import com.example.cs426_magicmusic.others.Constants
 import com.example.cs426_magicmusic.ui.view.songplayer.SongPlayerActivity
+import com.example.cs426_magicmusic.ui.viewmodel.GenericViewModelFactory
 import com.example.cs426_magicmusic.ui.viewmodel.SearchViewModel
 import com.google.android.material.search.SearchBar
 
@@ -44,9 +47,11 @@ class SearchFragment : Fragment() {
         val playlistRepository = PlaylistRepository(appDatabase)
 
         LocalDBSynchronizer.setupRepositories(albumRepository, artistRepository, songRepository)
-        searchViewModel = SearchViewModel(
-            songRepository, albumRepository, artistRepository, playlistRepository
-        )
+
+        val factory = GenericViewModelFactory(SearchViewModel::class.java) {
+            SearchViewModel(songRepository, albumRepository, artistRepository, playlistRepository)
+        }
+        searchViewModel = ViewModelProvider(this, factory)[SearchViewModel::class.java]
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

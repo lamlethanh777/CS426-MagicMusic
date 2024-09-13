@@ -13,11 +13,11 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import com.example.cs426_magicmusic.ui.view.main.generate_audio.GenerateAudioFragment
 import com.example.cs426_magicmusic.R
 import com.example.cs426_magicmusic.data.repository.AlbumRepository
 import com.example.cs426_magicmusic.data.repository.ArtistRepository
@@ -27,6 +27,7 @@ import com.example.cs426_magicmusic.data.source.db.AppDatabase
 import com.example.cs426_magicmusic.data.source.db.synchronize.LocalDBSynchronizer
 import com.example.cs426_magicmusic.others.Constants.ACTION_RETURN_TO_SONG_PLAYER_ACTIVITY
 import com.example.cs426_magicmusic.service.musicplayer.MusicPlayerService
+import com.example.cs426_magicmusic.ui.view.main.generate_audio.GenerateAudioFragment
 import com.example.cs426_magicmusic.ui.view.main.library.LibraryFragment
 import com.example.cs426_magicmusic.ui.view.main.search.SearchFragment
 import com.example.cs426_magicmusic.ui.view.songplayer.SongPlayerActivity
@@ -47,7 +48,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
     private lateinit var musicPlayerService: MusicPlayerService
 
-    private var mainViewModel = MainViewModel()
+    private val mainViewModel: MainViewModel by viewModels()
     private var isServiceBound = false
 
     /**
@@ -82,7 +83,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         initializeViews()
         subscribeToObservers()
         setClickListeners()
-        replaceFragment(LibraryFragment())
+        replaceFragment(mainViewModel.getCurrentFragment())
     }
 
     private fun initializeViews() {
@@ -134,19 +135,22 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
     private fun setBottomNavigationListener() {
         findViewById<BottomNavigationView>(R.id.bottom_navigation).setOnItemSelectedListener { item ->
+            var fragment: Fragment = LibraryFragment.newInstance()
             when (item.itemId) {
                 R.id.navigation_library -> {
-                    replaceFragment(LibraryFragment.newInstance())
+                    fragment = LibraryFragment.newInstance()
                 }
 
                 R.id.navigation_search -> {
-                    replaceFragment(SearchFragment.newInstance())
+                    fragment = SearchFragment.newInstance()
                 }
 
                 R.id.navigation_generate_audio -> {
-                    replaceFragment(GenerateAudioFragment.newInstance())
+                    fragment = GenerateAudioFragment.newInstance()
                 }
             }
+            mainViewModel.setCurrentFragment(fragment)
+            replaceFragment(fragment)
             true
         }
     }
@@ -199,8 +203,17 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d("MainActivity", "onDestroy called")
+    }
+
     private fun replaceFragment(fragment: Fragment) {
         supportFragmentManager.beginTransaction().replace(R.id.main_fragment, fragment).commit()
+        Log.d(
+            "MainActivity",
+            "current fragment: ${mainViewModel.getCurrentFragment()::class.java.simpleName}"
+        )
     }
 
     override fun onRequestPermissionsResult(

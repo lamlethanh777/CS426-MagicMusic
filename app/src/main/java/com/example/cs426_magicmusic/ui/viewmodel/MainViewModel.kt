@@ -2,15 +2,19 @@
 package com.example.cs426_magicmusic.ui.viewmodel
 
 import android.util.Log
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import com.example.cs426_magicmusic.data.entity.Song
 import com.example.cs426_magicmusic.service.musicplayer.MusicPlayerService
+import com.example.cs426_magicmusic.ui.view.main.library.LibraryFragment
 import java.lang.ref.WeakReference
 
 class MainViewModel : ViewModel() {
+    private var currentFragment: Fragment = LibraryFragment.newInstance()
+
     private val _currentSong = MutableLiveData<Song>()
     val currentSong: LiveData<Song> = _currentSong
 
@@ -19,6 +23,14 @@ class MainViewModel : ViewModel() {
 
     // WeakReference to avoid memory leaks
     private var musicPlayerServiceRef: WeakReference<MusicPlayerService>? = null
+
+    fun setCurrentFragment(fragment: Fragment) {
+        currentFragment = fragment
+    }
+
+    fun getCurrentFragment(): Fragment {
+        return currentFragment
+    }
 
     fun setIsPlaying() {
         _isPlaying.value = !(isPlaying.value ?: false)

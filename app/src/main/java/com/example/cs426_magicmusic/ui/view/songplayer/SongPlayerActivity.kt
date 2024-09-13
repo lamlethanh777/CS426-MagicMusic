@@ -14,6 +14,7 @@ import android.widget.ScrollView
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.lifecycle.lifecycleScope
@@ -63,7 +64,7 @@ class SongPlayerActivity : AppCompatActivity() {
     private var songIndex = 0
     private var incomingIntentAction: String? = null
 
-    private val songPlayerViewModel = SongPlayerViewModel()
+    private val songPlayerViewModel: SongPlayerViewModel by viewModels()
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
