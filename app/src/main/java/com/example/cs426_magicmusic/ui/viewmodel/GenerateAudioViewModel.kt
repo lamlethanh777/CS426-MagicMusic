@@ -224,7 +224,7 @@ class GenerateAudioViewModel : ViewModel() {
         var audioUrl: String? = null
         var lyricUrl: String?
         var title: String?
-        var maxAttempts = 10  // Maximum number of retries to avoid infinite looping
+        var maxAttempts = 100  // Maximum number of retries to avoid infinite looping
         var attempts = 0
 
         println("fetchHistoryRecordsByIndex $index")
@@ -357,7 +357,8 @@ class GenerateAudioViewModel : ViewModel() {
             try {
                 val response = client.newCall(request).execute()  // Synchronous call in background thread
                 if (response.isSuccessful) {
-                    val fileName = "${title} - v${index+1} ~ loading...mp3"
+                    val fileName = "${title} - v${index+1}.mp3"
+//                    val fileName = "${title} - v${index+1} ~ loading...mp3"
                     val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
                     val musicFolder = File(downloadsDir, "magicmusic/audio")
 

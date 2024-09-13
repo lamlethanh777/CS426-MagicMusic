@@ -8,6 +8,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import com.abdelhakim.prosoundeq.ProSoundEQSettings
 import com.example.cs426_magicmusic.data.entity.Song
 import com.example.cs426_magicmusic.others.Constants.DEFAULT_STARTING_AUDIO_POSITION
 import com.example.cs426_magicmusic.others.Constants.NUMBER_OF_REPEAT_MODE
@@ -47,6 +48,15 @@ class MusicPlayer(private val service: LifecycleService) {
                     val currentSong = playlist[exoPlayer.currentMediaItemIndex]
                     _currentSongLiveData.postValue(currentSong)
                     Log.d("MusicPlayer", "Media item transitioned to: ${currentSong.title}")
+                }
+            }
+
+            override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
+                if (playbackState == Player.STATE_READY && playWhenReady) {
+                    // Initialize ProSoundEQ with the audio session ID
+                    ProSoundEQSettings.init(exoPlayer.audioSessionId)
+                    ProSoundEQSettings.setColor("#34ebb1")
+                    Log.d("MusicPlayer", "ProSoundEQ initialized with audio session ID: ${exoPlayer.audioSessionId}")
                 }
             }
         })

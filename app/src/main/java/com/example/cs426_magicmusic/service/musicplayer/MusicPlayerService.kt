@@ -8,7 +8,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.media.MediaPlayer
 import android.os.Binder
+import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import android.widget.RemoteViews
@@ -18,6 +20,9 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.lifecycleScope
+import com.abdelhakim.prosoundeq.ProSoundEQSettings
 import com.example.cs426_magicmusic.R
 import com.example.cs426_magicmusic.data.entity.Song
 import com.example.cs426_magicmusic.others.Constants.ACTION_PLAY_PAUSE
@@ -65,6 +70,7 @@ class MusicPlayerService : LifecycleService() {
     override fun onCreate() {
         super.onCreate()
         musicPlayer = MusicPlayer(this)
+        Log.d("MusicPlayerService", "onCreate called")
 
         // Register the BroadcastReceiver
         musicBroadcastReceiver = MusicBroadcastReceiver()

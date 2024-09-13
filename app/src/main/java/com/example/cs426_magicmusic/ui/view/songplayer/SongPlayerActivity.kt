@@ -13,6 +13,7 @@ import android.widget.SeekBar
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import com.abdelhakim.prosoundeq.ProSoundEQ
 import com.example.cs426_magicmusic.R
 import com.example.cs426_magicmusic.data.entity.Song
 import com.example.cs426_magicmusic.others.Constants.ACTION_PLAY_NEW_SONG
@@ -45,6 +46,7 @@ class SongPlayerActivity : AppCompatActivity() {
     private lateinit var repeatButton: ImageButton
     private lateinit var shuffleButton: ImageButton
     private lateinit var alarmOffButton: ImageButton
+    private lateinit var equalizerButton: ImageButton
 
     private lateinit var musicPlayerService: MusicPlayerService
 
@@ -129,6 +131,7 @@ class SongPlayerActivity : AppCompatActivity() {
         retractButton = findViewById(R.id.play_retract_button)
         skipNextButton = findViewById(R.id.play_music_next)
         skipPreviousButton = findViewById(R.id.play_music_previous)
+        equalizerButton = findViewById(R.id.equalizerButton)
         repeatButton = findViewById(R.id.play_music_repeat)
         shuffleButton = findViewById(R.id.play_music_shuffle)
         alarmOffButton = findViewById(R.id.play_music_alarm_off)
@@ -162,6 +165,13 @@ class SongPlayerActivity : AppCompatActivity() {
     private fun setRepeatButtonListener() {
         repeatButton.setOnClickListener {
             songPlayerViewModel.setNextRepeatMode()
+        }
+        setEqualizerListener()
+    }
+
+    private fun setEqualizerListener() {
+        equalizerButton.setOnClickListener {
+            startActivity(Intent(this, ProSoundEQ::class.java))
         }
     }
 

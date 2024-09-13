@@ -24,6 +24,16 @@
             android:layout_marginTop="8dp"
             android:layout_marginStart="8dp"/>
 
+        <ImageButton
+            android:id="@+id/equalizerButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_retract_player"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:padding="12dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="8dp"/>
+
         <androidx.cardview.widget.CardView
             android:layout_width="300dp"
             android:layout_height="300dp"
