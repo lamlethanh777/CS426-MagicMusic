@@ -27,7 +27,8 @@ import com.example.cs426_magicmusic.data.repository.SongRepository
 import com.example.cs426_magicmusic.data.source.db.AppDatabase
 import com.example.cs426_magicmusic.data.source.db.synchronize.LocalDBSynchronizer
 import com.example.cs426_magicmusic.others.Constants.ACTION_PLAY_NEW_SONG
-import com.example.cs426_magicmusic.others.Constants.INTENT_KEY_NEW_SONG
+import com.example.cs426_magicmusic.others.Constants.INTENT_KEY_NEW_SONG_LIST
+import com.example.cs426_magicmusic.others.Constants.INTENT_KEY_SONG_INDEX
 import com.example.cs426_magicmusic.ui.view.songplayer.SongPlayerActivity
 import com.example.cs426_magicmusic.ui.viewmodel.LibraryViewModel
 import kotlinx.coroutines.launch
@@ -38,6 +39,8 @@ class LibraryFragment : Fragment() {
     private var artistItemAdapter: ArtistItemAdapter? = null
     private var playlistItemAdapter: PlaylistItemAdapter? = null
     private var displayOptionAdapter: DisplayOptionAdapter? = null
+    private var listenerManager = ListenerManager()
+    private var currentSongList = mutableListOf<Song>()
     private lateinit var lastFetchAction: (() -> Unit)
     private lateinit var libraryViewModel: LibraryViewModel
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
@@ -199,16 +202,19 @@ class LibraryFragment : Fragment() {
                 musicListRecyclerView.adapter = songItemAdapter
                 popupButton.setOnClickListener { popupSongs.invoke() }
             }
+
             "Albums" -> {
                 lastFetchAction = { libraryViewModel.fetchAllAlbums() }
                 musicListRecyclerView.adapter = albumItemAdapter
                 popupButton.setOnClickListener { popupAlbums.invoke() }
             }
+
             "Artists" -> {
                 lastFetchAction = { libraryViewModel.fetchAllArtists() }
                 musicListRecyclerView.adapter = artistItemAdapter
                 popupButton.setOnClickListener { popupArtists.invoke() }
             }
+
             "Playlists" -> {
                 lastFetchAction = { libraryViewModel.fetchAllPlaylists() }
                 musicListRecyclerView.adapter = playlistItemAdapter
@@ -219,20 +225,88 @@ class LibraryFragment : Fragment() {
     }
 
     private fun setUpMusicListRecyclerView(view: View) {
-        songItemAdapter = SongItemAdapter(::onClickSongItem)
-        albumItemAdapter = AlbumItemAdapter(::onClickAlbumItem)
-        artistItemAdapter = ArtistItemAdapter(::onClickArtistItem)
-        playlistItemAdapter = PlaylistItemAdapter(::onClickPlaylistItem)
+        setUpSongItemAdapter()
+        setUpAlbumItemAdapter()
+        setUpArtistItemAdapter()
+        setUpPlaylistItemAdapter()
         musicListRecyclerView = view.findViewById(R.id.library_music_list_recyclerview)
         musicListRecyclerView.layoutManager = LinearLayoutManager(
             context, LinearLayoutManager.VERTICAL, false
         )
     }
 
-    private fun onClickSongItem(song: Song?) {
+    private fun setUpPlaylistItemAdapter() {
+        listenerManager.addListener(
+            Playlist::class.java,
+            object : AdapterItemListenerInterface<Playlist> {
+                override fun onItemClicked(item: Playlist, position: Int) {
+                    onClickPlaylistItem(item)
+                }
+
+                override fun onItemLongClicked(item: Playlist, position: Int) {
+                    // Handle song item long click
+                }
+            })
+
+        playlistItemAdapter = PlaylistItemAdapter(listenerManager)
+    }
+
+    private fun setUpArtistItemAdapter() {
+        listenerManager.addListener(
+            Artist::class.java,
+            object : AdapterItemListenerInterface<Artist> {
+                override fun onItemClicked(item: Artist, position: Int) {
+                    onClickArtistItem(item)
+                }
+
+                override fun onItemLongClicked(item: Artist, position: Int) {
+                    // Handle song item long click
+                }
+            })
+
+        artistItemAdapter = ArtistItemAdapter(listenerManager)
+    }
+
+    private fun setUpAlbumItemAdapter() {
+        listenerManager.addListener(
+            Album::class.java,
+            object : AdapterItemListenerInterface<Album> {
+                override fun onItemClicked(item: Album, position: Int) {
+                    onClickAlbumItem(item)
+                }
+
+                override fun onItemLongClicked(item: Album, position: Int) {
+                    // Handle song item long click
+                }
+            })
+
+        albumItemAdapter = AlbumItemAdapter(listenerManager)
+    }
+
+    private fun setUpSongItemAdapter() {
+        listenerManager.addListener(
+            Song::class.java,
+            object : AdapterItemListenerInterface<Song> {
+                override fun onItemClicked(item: Song, position: Int) {
+                    onClickSongItem(item, position)
+                    Log.d("LibraryFragment", "onItemClicked: ${item.title} and position: $position")
+                }
+
+                override fun onItemLongClicked(item: Song, position: Int) {
+                    // Handle song item long click
+                }
+            })
+
+        songItemAdapter = SongItemAdapter(listenerManager)
+    }
+
+    private fun onClickSongItem(song: Song?, position: Int) {
         Log.d("LibraryFragment", "onClickSongItem: ${song?.title}")
-        var intent: Intent = Intent(context, SongPlayerActivity::class.java)
-        intent.putExtra(INTENT_KEY_NEW_SONG, song)
+
+        // TODO: PRETTY DANGEROUS
+        var intent = Intent(context, SongPlayerActivity::class.java)
+        intent.putExtra(INTENT_KEY_NEW_SONG_LIST, ArrayList(songItemAdapter!!.itemList))
+        intent.putExtra(INTENT_KEY_SONG_INDEX, position)
         intent.action = ACTION_PLAY_NEW_SONG
         startActivity(intent)
     }
@@ -291,7 +365,8 @@ class LibraryFragment : Fragment() {
                     }
 
                     R.id.popup_menu_sort_by_artist -> {
-                        lastFetchAction = { libraryViewModel.fetchSongsInAlbumOrderByArtistNames(album) }
+                        lastFetchAction =
+                            { libraryViewModel.fetchSongsInAlbumOrderByArtistNames(album) }
                     }
                 }
                 lastFetchAction.invoke()
@@ -305,7 +380,8 @@ class LibraryFragment : Fragment() {
             popupMenu.setOnMenuItemClickListener { menuItem ->
                 when (menuItem.itemId) {
                     R.id.popup_menu_sort_by_title -> {
-                        lastFetchAction = { libraryViewModel.fetchSongsOfArtistOrderByTitle(artist) }
+                        lastFetchAction =
+                            { libraryViewModel.fetchSongsOfArtistOrderByTitle(artist) }
                     }
 
                     R.id.popup_menu_sort_by_artist -> {
@@ -323,11 +399,13 @@ class LibraryFragment : Fragment() {
             popupMenu.setOnMenuItemClickListener { menuItem ->
                 when (menuItem.itemId) {
                     R.id.popup_menu_sort_by_title -> {
-                        lastFetchAction = { libraryViewModel.fetchSongsInPlaylistOrderByTitle(playlist) }
+                        lastFetchAction =
+                            { libraryViewModel.fetchSongsInPlaylistOrderByTitle(playlist) }
                     }
 
                     R.id.popup_menu_sort_by_artist -> {
-                        lastFetchAction = { libraryViewModel.fetchSongsInPlaylistOrderByArtistNames(playlist) }
+                        lastFetchAction =
+                            { libraryViewModel.fetchSongsInPlaylistOrderByArtistNames(playlist) }
                     }
                 }
                 lastFetchAction.invoke()

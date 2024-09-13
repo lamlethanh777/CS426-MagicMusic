@@ -4,9 +4,9 @@ import androidx.recyclerview.widget.DiffUtil
 import com.example.cs426_magicmusic.data.entity.Song
 
 class SongItemAdapter(
-    private val itemListener: ((Song?) -> Unit)
+    listenerManager: ListenerManager
 ) : TemplateItemAdapter<Song>(
-    itemListener,
+    listenerManager,
     object : DiffUtil.ItemCallback<Song>() {
         override fun areItemsTheSame(oldItem: Song, newItem: Song): Boolean {
             return oldItem.path == newItem.path

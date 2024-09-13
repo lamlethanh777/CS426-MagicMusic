@@ -58,7 +58,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             musicPlayerService = binder.getService()
             isServiceBound = true
 
-            Log.d("SongPlayerActivity", "onServiceConnected")
+            Log.d("MainActivity", "Service connected")
+
             mainViewModel.setMusicService(musicPlayerService)
         }
 
@@ -180,6 +181,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     override fun onStart() {
         super.onStart()
         val intent = Intent(this, MusicPlayerService::class.java)
+
         // Start the music service
         startService(intent)
 

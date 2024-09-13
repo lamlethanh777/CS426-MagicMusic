@@ -8,8 +8,8 @@ import com.example.cs426_magicmusic.R
 import com.example.cs426_magicmusic.others.Constants.ACTION_PLAY_PAUSE
 import com.example.cs426_magicmusic.others.Constants.ACTION_SKIP_NEXT
 import com.example.cs426_magicmusic.others.Constants.ACTION_SKIP_PREVIOUS
-import com.example.cs426_magicmusic.others.Constants.NEXT_SONG
-import com.example.cs426_magicmusic.others.Constants.PREVIOUS_SONG
+import com.example.cs426_magicmusic.others.Constants.PLAY_DIRECTION_NEXT
+import com.example.cs426_magicmusic.others.Constants.PLAY_DIRECTION_PREVIOUS
 
 class MusicBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -20,7 +20,7 @@ class MusicBroadcastReceiver : BroadcastReceiver() {
         when (intent.action) {
             ACTION_PLAY_PAUSE -> {
                 if (service.isPlayingLiveData.value == true) {
-                    service.pauseSong()
+                    service.pause()
                     remoteViews.setImageViewResource(
                         R.id.notification_play_pause,
                         R.drawable.ic_play_circle_40
@@ -37,8 +37,9 @@ class MusicBroadcastReceiver : BroadcastReceiver() {
                 notificationManager.notify(1, service.notificationBuilder.build())
             }
 
-            ACTION_SKIP_NEXT -> service.playNextSong(NEXT_SONG)
-            ACTION_SKIP_PREVIOUS -> service.playNextSong(PREVIOUS_SONG)
+            ACTION_SKIP_NEXT -> service.playNext()
+
+            ACTION_SKIP_PREVIOUS -> service.playPrevious()
         }
     }
 }

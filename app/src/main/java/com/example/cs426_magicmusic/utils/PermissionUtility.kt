@@ -18,6 +18,7 @@ object PermissionUtility {
     )
 
     fun hasEnoughPermission(context: Context): Boolean {
+
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {
             permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
         } else {

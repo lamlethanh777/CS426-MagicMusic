@@ -85,4 +85,8 @@ dependencies {
 
     //for viewModelScope
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1")
+
+    val exoPlayerVersion = "1.4.1"
+    implementation("androidx.media3:media3-exoplayer:$exoPlayerVersion")
+    implementation("androidx.media3:media3-ui:$exoPlayerVersion")
 }

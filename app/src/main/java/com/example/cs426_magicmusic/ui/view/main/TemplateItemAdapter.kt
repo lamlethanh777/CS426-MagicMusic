@@ -13,13 +13,14 @@ import com.example.cs426_magicmusic.R
 import com.example.cs426_magicmusic.utils.ImageUtility
 
 abstract class TemplateItemAdapter<T>(
-    private val itemListener: ((T?) -> Unit),
+    private val listenerManager: ListenerManager,
     private val diffCallback: DiffUtil.ItemCallback<T>
 ) : RecyclerView.Adapter<TemplateItemAdapter<T>.TemplateViewHolder>() {
 
     enum class LayoutType {
         GRID, LIST
     }
+
     private var _layoutType: LayoutType = LayoutType.LIST
     var layoutType: LayoutType
         get() = _layoutType
@@ -77,9 +78,31 @@ abstract class TemplateItemAdapter<T>(
         )
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun onBindViewHolder(holder: TemplateViewHolder, position: Int) {
         val item = itemList[position]
-        holder.onBind(item, getTitle(item), getSubtitle(item), getImageUri(item))
+        val listener = listenerManager.getListener(item!!::class.java) as? AdapterItemListenerInterface<T>
+        holder.onBind(item, getTitle(item), getSubtitle(item), getImageUri(item), position, listener)
+    }
+
+    inner class TemplateViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private var _image = itemView.findViewById<ImageView>(R.id.item_song_image)
+        private var _title = itemView.findViewById<TextView>(R.id.item_song_title)
+        private var _artists = itemView.findViewById<TextView>(R.id.item_song_artists)
+
+        fun onBind(
+            item: T, title: String, artists: String, imageUri: String, position: Int,
+            listener: AdapterItemListenerInterface<T>?
+        ) {
+            _title.text = title
+            _artists.text = artists
+            ImageUtility.loadImage(itemView.context, imageUri, _image)
+            itemView.setOnClickListener { listener?.onItemClicked(item, position) }
+            itemView.setOnLongClickListener {
+                listener?.onItemLongClicked(item, position)
+                true
+            }
+        }
     }
 
     abstract fun getTitle(item: Any?): String
@@ -87,20 +110,4 @@ abstract class TemplateItemAdapter<T>(
     abstract fun getSubtitle(item: Any?): String
 
     abstract fun getImageUri(item: Any?): String
-
-    inner class TemplateViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private var _image: ImageView = itemView.findViewById<ImageView>(R.id.item_song_image)
-        private var _title: TextView = itemView.findViewById<TextView>(R.id.item_song_title)
-        private var _artists: TextView = itemView.findViewById<TextView>(R.id.item_song_artists)
-        private var mItem: T? = null
-
-        fun onBind(item: T, title: String, artists: String, uri_image: String) {
-            mItem = item
-            _title.text = title
-            _artists.text = artists
-            ImageUtility.loadImage(itemView.context, uri_image, _image)
-
-            itemView.setOnClickListener{ itemListener(mItem) }
-        }
-    }
 }
