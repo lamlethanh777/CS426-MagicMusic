@@ -9,6 +9,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.abdelhakim.prosoundeq.ProSoundEQSettings
+import com.example.cs426_magicmusic.R
 import com.example.cs426_magicmusic.data.entity.Song
 import com.example.cs426_magicmusic.others.Constants.DEFAULT_STARTING_AUDIO_POSITION
 import com.example.cs426_magicmusic.others.Constants.NUMBER_OF_REPEAT_MODE

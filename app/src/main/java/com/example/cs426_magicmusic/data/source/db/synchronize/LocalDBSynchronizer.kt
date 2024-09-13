@@ -95,15 +95,12 @@ object LocalDBSynchronizer {
                             "Processing song: $songTitle, path: $path, album: $albumName, artists: $artistNames, duration: $duration"
                         )
 
-                        val lyric = getLyricForSong(songTitle)
-
                         val song = Song(
                             path = path,
                             title = songTitle,
                             uri = uri.toString(),
                             duration = duration,
-                            artistNames = artistNames,
-                            lyricPath = lyric
+                            artistNames = artistNames
                         )
                         _songList.add(song)
 
@@ -160,13 +157,13 @@ object LocalDBSynchronizer {
         // Find newly added songs
         val newSongs = _songList.filter { song ->
             currentSongsInDb.none {
-                it.path == song.path && it.duration == song.duration && it.lyricPath == song.lyricPath
+                it.path == song.path && it.duration == song.duration
             }
         }
 
         // Find deleted songs
         val deletedSongs = currentSongsInDb.filter { song ->
-            _songList.none { it.path == song.path && it.duration == song.duration && it.lyricPath == song.lyricPath }
+            _songList.none { it.path == song.path && it.duration == song.duration}
         }
 
         Log.d("LocalDBSynchronizer", "New songs to add: ${newSongs.size}")
@@ -197,38 +194,5 @@ object LocalDBSynchronizer {
         Log.d("LocalDBSynchronizer", "Songs after sync: ${songRepository.fetchSongs().size}")
         Log.d("LocalDBSynchronizer", "Albums after sync: ${albumRepository.fetchAlbums().size}")
         Log.d("LocalDBSynchronizer", "Artists after sync: ${artistRepository.fetchArtists().size}")
-    }
-
-    private fun getLyricForSong(songTitle: String): String {
-        // Specify the folder where lyrics should be located
-        val lyricDirectory = File(
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-            "magicmusic/lyric"
-        )
-
-        // Check if the directory exists, if not return unknown lyric string
-        if (!lyricDirectory.exists() || !lyricDirectory.isDirectory) {
-            Log.e("LyricFinder", "Lyric directory does not exist.")
-            return STRING_UNKNOWN_LYRIC
-        }
-
-        // Search for the corresponding .txt file by song title
-        val lyricFile = File(lyricDirectory, "$songTitle.txt")
-
-//        println(lyricFile.absolutePath)
-        return lyricFile.absolutePath
-
-        // Check if the lyric file exists and return its content, else return unknown lyric string
-//        return if (lyricFile.exists()) {
-////            val inputStream = FileInputStream(lyricFile)
-////            val reader = InputStreamReader(inputStream, Charset.forName("UTF-8"))
-////            val lyrics = reader.readText()
-////            reader.close()
-////            lyrics
-//            lyricFile.readText()  // Read the content of the file
-//        } else {
-//            Log.d("LyricFinder", lyricFile.absolutePath)
-//            STRING_UNKNOWN_LYRIC
-//        }
     }
 }

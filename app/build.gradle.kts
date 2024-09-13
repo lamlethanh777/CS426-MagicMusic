@@ -92,4 +92,6 @@ dependencies {
     val exoPlayerVersion = "1.4.1"
     implementation("androidx.media3:media3-exoplayer:$exoPlayerVersion")
     implementation("androidx.media3:media3-ui:$exoPlayerVersion")
+
+    implementation("androidx.palette:palette:1.0.0")
 }

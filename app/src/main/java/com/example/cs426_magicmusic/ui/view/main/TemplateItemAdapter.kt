@@ -96,7 +96,7 @@ abstract class TemplateItemAdapter<T>(
         ) {
             _title.text = title
             _artists.text = artists
-            ImageUtility.loadImage(itemView.context, imageUri, _image)
+            ImageUtility.loadImage(itemView.context, title, imageUri, _image)
             itemView.setOnClickListener { listener?.onItemClicked(item, position) }
             itemView.setOnLongClickListener {
                 listener?.onItemLongClicked(item, position)

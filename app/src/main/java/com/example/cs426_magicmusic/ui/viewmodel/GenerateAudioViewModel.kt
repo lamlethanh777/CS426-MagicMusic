@@ -300,7 +300,7 @@ class GenerateAudioViewModel : ViewModel() {
                     }
 
                     // Generate the file name based on the title
-                    val fileName = "$title-v$index.json"
+                    val fileName = "$title - v${index + 1}.json"
                     val file = File(metadataFolder, fileName)
 
                     // Write JSON string to file

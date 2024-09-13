@@ -66,4 +66,5 @@ object Constants {
 
         const val PLAYER_DELAY_BETWEEN_SONGS = 1000L
         const val STRING_UNKNOWN_LYRIC = "No lyric available"
+        const val STRING_UNKNOWN_IMAGE = "No image available"
 }

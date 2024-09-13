@@ -14,5 +14,6 @@
         android:textColor="?attr/colorOnSurface"
         android:elevation="0dp"
         android:padding="16dp"
+        android:textSize="22dp"
         tools:text="Lyrics go here" />
 </LinearLayout>

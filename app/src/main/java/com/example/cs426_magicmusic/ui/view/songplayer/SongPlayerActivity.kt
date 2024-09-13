@@ -4,15 +4,20 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.cardview.widget.CardView
+import androidx.lifecycle.lifecycleScope
 import com.abdelhakim.prosoundeq.ProSoundEQ
 import com.example.cs426_magicmusic.R
 import com.example.cs426_magicmusic.data.entity.Song
@@ -22,14 +27,14 @@ import com.example.cs426_magicmusic.others.Constants.INTENT_KEY_SONG_INDEX
 import com.example.cs426_magicmusic.others.Constants.PLAYER_REPEAT_MODE_ALL
 import com.example.cs426_magicmusic.others.Constants.PLAYER_REPEAT_MODE_NONE
 import com.example.cs426_magicmusic.others.Constants.PLAYER_REPEAT_MODE_ONE
-import com.example.cs426_magicmusic.others.Constants.PLAYER_SHUFFLE_MODE_OFF
-import com.example.cs426_magicmusic.others.Constants.PLAYER_SHUFFLE_MODE_ON
-import com.example.cs426_magicmusic.others.Constants.PLAY_DIRECTION_NONE
+import com.example.cs426_magicmusic.others.Constants.STRING_UNKNOWN_IMAGE
 import com.example.cs426_magicmusic.service.musicplayer.MusicPlayerService
 import com.example.cs426_magicmusic.ui.viewmodel.SongPlayerViewModel
 import com.example.cs426_magicmusic.utils.ImageUtility
 import com.example.cs426_magicmusic.utils.IntentUtility.parcelableArrayList
+import com.example.cs426_magicmusic.utils.PaletteUtility
 import com.example.cs426_magicmusic.utils.TimeFormatUtility.formatTimestampToMMSS
+import kotlinx.coroutines.launch
 
 class SongPlayerActivity : AppCompatActivity() {
     private lateinit var textFrom: TextView
@@ -48,6 +53,8 @@ class SongPlayerActivity : AppCompatActivity() {
     private lateinit var alarmOffButton: ImageButton
     private lateinit var equalizerButton: ImageButton
     private lateinit var lyricButton: ImageButton
+    private lateinit var innerLayout: CardView
+    private lateinit var outerLayout: ScrollView
 
     private lateinit var musicPlayerService: MusicPlayerService
 
@@ -131,6 +138,8 @@ class SongPlayerActivity : AppCompatActivity() {
         alarmOffButton = findViewById(R.id.play_music_alarm_off)
         equalizerButton = findViewById(R.id.play_music_equalizer)
         lyricButton = findViewById(R.id.play_music_lyric)
+        innerLayout = findViewById(R.id.play_inner_layout)
+        outerLayout = findViewById(R.id.play_layout)
 
         songTitle.isSelected = true
         artistNames.isSelected = true
@@ -290,7 +299,30 @@ class SongPlayerActivity : AppCompatActivity() {
         songPlayerViewModel.currentSong.observe(this@SongPlayerActivity) { song ->
             Log.d("SongPlayerActivity", "Current song: ${song.title}")
 
-            ImageUtility.loadImage(this, song.uri, imageView)
+
+
+            ImageUtility.loadImage(this, song.title, song.uri, imageView)
+            val urlTmp = ImageUtility.loadImageUrlFromJson(song.title)
+            var tmpBitmap: Bitmap? = null
+
+
+            if (urlTmp == STRING_UNKNOWN_IMAGE)
+                tmpBitmap = ImageUtility.loadBitmap(this, song.uri)
+            else
+                lifecycleScope.launch {
+                    tmpBitmap = ImageUtility.loadBitmapFromUrl(this@SongPlayerActivity, song.title)
+                    if (tmpBitmap != null) {
+                        PaletteUtility.applyPaletteFromImage(this@SongPlayerActivity, tmpBitmap!!, innerLayout, outerLayout)
+                    }
+                }
+
+            if (tmpBitmap != null) {
+                PaletteUtility.applyPaletteFromImage(this, tmpBitmap!!, innerLayout, outerLayout)
+            }
+            else {
+                Log.e("trollll", "trollll")
+            }
+
 
             songTitle.text = song.title
             artistNames.text = song.artistNames
