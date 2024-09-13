@@ -36,7 +36,7 @@ object ImageUtility {
             Uri.parse(uri), Size(350, 350), null
         )
     } catch (e: Exception) {
-        Log.e("ImageUtility", "Exception occurred: ${e.message}")
+        Log.d("ImageUtility", "Exception occurred: ${e.message}")
         BitmapFactory.decodeResource(context.resources, R.drawable.placeholder_default)?.also {
             if (it == null) {
                 Log.e("ImageUtility", "Failed to load placeholder image")

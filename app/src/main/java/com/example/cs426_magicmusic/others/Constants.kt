@@ -42,17 +42,27 @@ object Constants {
         /**
          * Intent keys when sending data between activities
          */
-        const val INTENT_KEY_NEW_SONG = "NEW_SONG"
+        const val INTENT_KEY_NEW_SONG_LIST = "NEW_SONG_LIST"
+        const val INTENT_KEY_SONG_INDEX = "SONG_INDEX"
 
         const val STRING_UNKNOWN_ARTIST = "Unknown Artist"
         const val STRING_UNKNOWN_ALBUM = "Unknown Album"
         const val STRING_UNKNOWN_TITLE = "Unknown Title"
         const val STRING_SYSTEM_UNKNOWN_TAG = "<unknown>"
 
-        enum class PlayerMode {
-                REPEAT,
-                REPEAT_ALL,
-                SHUFFLE,
-                NONE
-        }
+        const val NUMBER_OF_REPEAT_MODE = 3
+        const val PLAYER_REPEAT_MODE_NONE = 0
+        const val PLAYER_REPEAT_MODE_ONE = 1
+        const val PLAYER_REPEAT_MODE_ALL = 2
+
+        const val NUMBER_OF_SHUFFLE_MODE = 2
+        const val PLAYER_SHUFFLE_MODE_OFF = false
+        const val PLAYER_SHUFFLE_MODE_ON = true
+
+        const val NUMBER_OF_PLAY_DIRECTION = 2
+        const val PLAY_DIRECTION_NEXT = 1
+        const val PLAY_DIRECTION_PREVIOUS = -1
+        const val PLAY_DIRECTION_NONE = 0
+
+        const val PLAYER_DELAY_BETWEEN_SONGS = 1000L
 }

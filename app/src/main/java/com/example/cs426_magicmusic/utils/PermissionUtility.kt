@@ -14,6 +14,7 @@ import com.vmadalin.easypermissions.EasyPermissions
 object PermissionUtility {
 
     private val permissions = mutableListOf(
+        Manifest.permission.POST_NOTIFICATIONS,
         Manifest.permission.FOREGROUND_SERVICE
     )
 

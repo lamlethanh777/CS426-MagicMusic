@@ -2,11 +2,12 @@ package com.example.cs426_magicmusic.ui.view.main
 
 import androidx.recyclerview.widget.DiffUtil
 import com.example.cs426_magicmusic.data.entity.Artist
+import com.example.cs426_magicmusic.data.entity.Song
 
 class ArtistItemAdapter(
-    private val itemListener: ((Artist?) -> Unit)
+    listenerManager: ListenerManager
 ) : TemplateItemAdapter<Artist>(
-    itemListener,
+    listenerManager,
     object : DiffUtil.ItemCallback<Artist>() {
         override fun areItemsTheSame(oldItem: Artist, newItem: Artist): Boolean {
             return oldItem.artistName == newItem.artistName

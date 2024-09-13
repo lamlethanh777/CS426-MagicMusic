@@ -16,12 +16,18 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.cs426_magicmusic.R
 import com.example.cs426_magicmusic.data.entity.Song
 import com.example.cs426_magicmusic.others.Constants.ACTION_PLAY_NEW_SONG
-import com.example.cs426_magicmusic.others.Constants.INTENT_KEY_NEW_SONG
-import com.example.cs426_magicmusic.others.Constants.STRING_UNKNOWN_ARTIST
+import com.example.cs426_magicmusic.others.Constants.INTENT_KEY_NEW_SONG_LIST
+import com.example.cs426_magicmusic.others.Constants.INTENT_KEY_SONG_INDEX
+import com.example.cs426_magicmusic.others.Constants.PLAYER_REPEAT_MODE_ALL
+import com.example.cs426_magicmusic.others.Constants.PLAYER_REPEAT_MODE_NONE
+import com.example.cs426_magicmusic.others.Constants.PLAYER_REPEAT_MODE_ONE
+import com.example.cs426_magicmusic.others.Constants.PLAYER_SHUFFLE_MODE_OFF
+import com.example.cs426_magicmusic.others.Constants.PLAYER_SHUFFLE_MODE_ON
+import com.example.cs426_magicmusic.others.Constants.PLAY_DIRECTION_NONE
 import com.example.cs426_magicmusic.service.musicplayer.MusicPlayerService
 import com.example.cs426_magicmusic.ui.viewmodel.SongPlayerViewModel
 import com.example.cs426_magicmusic.utils.ImageUtility
-import com.example.cs426_magicmusic.utils.IntentUtility.parcelable
+import com.example.cs426_magicmusic.utils.IntentUtility.parcelableArrayList
 import com.example.cs426_magicmusic.utils.TimeFormatUtility.formatTimestampToMMSS
 
 class SongPlayerActivity : AppCompatActivity() {
@@ -36,12 +42,16 @@ class SongPlayerActivity : AppCompatActivity() {
     private lateinit var retractButton: ImageButton
     private lateinit var skipNextButton: ImageButton
     private lateinit var skipPreviousButton: ImageButton
+    private lateinit var repeatButton: ImageButton
+    private lateinit var shuffleButton: ImageButton
+    private lateinit var alarmOffButton: ImageButton
 
     private lateinit var musicPlayerService: MusicPlayerService
 
     private var shouldUpdateSeekBar = true
     private var isServiceBound = false
     private var songList = mutableListOf<Song>()
+    private var songIndex = 0
     private var incomingIntentAction: String? = null
 
     private val songPlayerViewModel = SongPlayerViewModel()
@@ -56,10 +66,13 @@ class SongPlayerActivity : AppCompatActivity() {
             songPlayerViewModel.setMusicService(musicPlayerService)
             isServiceBound = true
 
+            Log.d("SongPlayerActivity", "onServiceConnected")
+
             when (incomingIntentAction) {
                 ACTION_PLAY_NEW_SONG -> {
-                    musicPlayerService.setPlaylist(songList)
-                    musicPlayerService.playNextSong()
+                    Log.d("SongPlayerActivity", "Playing new song at index $songIndex")
+                    musicPlayerService.setPlaylist(songList, songIndex)
+                    musicPlayerService.playCurrent()
                 }
 
                 else -> {
@@ -80,19 +93,16 @@ class SongPlayerActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         incomingIntentAction = intent.action
-        intent.extras?.apply {
-            when {
-                containsKey(INTENT_KEY_NEW_SONG) -> {
-                    val song: Song? = intent.parcelable(INTENT_KEY_NEW_SONG)
-                    if (song != null) {
-                        songList.add(song)
-                    }
-                }
-
-                else -> {
-                    Log.d("SongPlayerActivity", "No new song")
-                }
+        intent.extras?.let {
+            val songs = it.parcelableArrayList<Song>(INTENT_KEY_NEW_SONG_LIST)
+            if (songs != null) {
+                songList.clear()
+                songList.addAll(songs)
+                Log.d("SongPlayerActivity", "New song list: ${songList.size}")
             }
+
+            songIndex = it.getInt(INTENT_KEY_SONG_INDEX, 0)
+            Log.d("SongPlayerActivity", "New song index: $songIndex")
         }
     }
 
@@ -119,6 +129,9 @@ class SongPlayerActivity : AppCompatActivity() {
         retractButton = findViewById(R.id.play_retract_button)
         skipNextButton = findViewById(R.id.play_music_next)
         skipPreviousButton = findViewById(R.id.play_music_previous)
+        repeatButton = findViewById(R.id.play_music_repeat)
+        shuffleButton = findViewById(R.id.play_music_shuffle)
+        alarmOffButton = findViewById(R.id.play_music_alarm_off)
 
         songTitle.isSelected = true
         artistNames.isSelected = true
@@ -131,22 +144,41 @@ class SongPlayerActivity : AppCompatActivity() {
         setIsFavoriteButtonListener()
         setSkipNextButtonListener()
         setSkipPreviousButtonListener()
+        setRepeatButtonListener()
+        setShuffleButtonListener()
+        setAlarmOffButtonListener()
+    }
+
+    private fun setAlarmOffButtonListener() {
+
+    }
+
+    private fun setShuffleButtonListener() {
+        shuffleButton.setOnClickListener {
+            songPlayerViewModel.setNextShuffleMode()
+        }
+    }
+
+    private fun setRepeatButtonListener() {
+        repeatButton.setOnClickListener {
+            songPlayerViewModel.setNextRepeatMode()
+        }
     }
 
     private fun setSkipPreviousButtonListener() {
-        skipPreviousButton.setOnClickListener() {
-            songPlayerViewModel.skipPreviousSong()
+        skipPreviousButton.setOnClickListener {
+            songPlayerViewModel.playPreviousSong()
         }
     }
 
     private fun setSkipNextButtonListener() {
-        skipNextButton.setOnClickListener() {
-            songPlayerViewModel.skipNextSong()
+        skipNextButton.setOnClickListener {
+            songPlayerViewModel.playNextSong()
         }
     }
 
     private fun setIsFavoriteButtonListener() {
-        favoriteButton.setOnClickListener() {
+        favoriteButton.setOnClickListener {
             songPlayerViewModel.setIsFavorite()
         }
     }
@@ -191,6 +223,37 @@ class SongPlayerActivity : AppCompatActivity() {
         subscribeToCurrentSongLiveData()
         subscribeToCurrentSongPositionLiveData()
         subscribeToIsPlayingLiveData()
+        subscribeToIsFavoriteLiveData()
+        subscribeToRepeatModeLiveData()
+        subscribeToShuffleModeLiveData()
+        subscribeToAlarmOffLiveData()
+    }
+
+    private fun subscribeToAlarmOffLiveData() {
+
+    }
+
+    private fun subscribeToShuffleModeLiveData() {
+        songPlayerViewModel.shuffleMode.observe(this@SongPlayerActivity) { shuffleMode ->
+            when (shuffleMode) {
+                false -> shuffleButton.setImageResource(R.drawable.ic_no_shuffle_30)
+                true -> shuffleButton.setImageResource(R.drawable.ic_shuffle_30)
+            }
+        }
+    }
+
+    private fun subscribeToRepeatModeLiveData() {
+        songPlayerViewModel.repeatMode.observe(this@SongPlayerActivity) { repeatMode ->
+            when (repeatMode) {
+                PLAYER_REPEAT_MODE_NONE -> repeatButton.setImageResource(R.drawable.ic_no_repeat_30)
+                PLAYER_REPEAT_MODE_ONE -> repeatButton.setImageResource(R.drawable.ic_repeat_one_30)
+                PLAYER_REPEAT_MODE_ALL -> repeatButton.setImageResource(R.drawable.ic_repeat_all_30)
+            }
+        }
+    }
+
+    private fun subscribeToIsFavoriteLiveData() {
+
     }
 
     private fun subscribeToIsPlayingLiveData() {
@@ -213,6 +276,8 @@ class SongPlayerActivity : AppCompatActivity() {
 
     private fun subscribeToCurrentSongLiveData() {
         songPlayerViewModel.currentSong.observe(this@SongPlayerActivity) { song ->
+            Log.d("SongPlayerActivity", "Current song: ${song.title}")
+
             ImageUtility.loadImage(this, song.uri, imageView)
 
             songTitle.text = song.title

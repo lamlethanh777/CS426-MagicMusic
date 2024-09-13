@@ -58,7 +58,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             musicPlayerService = binder.getService()
             isServiceBound = true
 
-            Log.d("SongPlayerActivity", "onServiceConnected")
+            Log.d("MainActivity", "Service connected")
+
             mainViewModel.setMusicService(musicPlayerService)
         }
 

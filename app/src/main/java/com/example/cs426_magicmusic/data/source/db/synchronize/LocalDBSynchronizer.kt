@@ -160,7 +160,9 @@ object LocalDBSynchronizer {
 
         // Find newly added songs
         val newSongs = _songList.filter { song ->
-            currentSongsInDb.none { it.path == song.path }
+            currentSongsInDb.none {
+                it.path == song.path && it.duration == song.duration
+            }
         }
 
         // Find deleted songs

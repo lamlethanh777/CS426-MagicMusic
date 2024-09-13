@@ -6,7 +6,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.media.MediaPlayer
 import android.os.Binder
 import android.os.IBinder
 import android.util.Log
@@ -15,15 +14,12 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.lifecycleScope
 import com.example.cs426_magicmusic.R
 import com.example.cs426_magicmusic.data.entity.Song
 import com.example.cs426_magicmusic.others.Constants
 import com.example.cs426_magicmusic.others.Constants.ACTION_PLAY_PAUSE
 import com.example.cs426_magicmusic.others.Constants.ACTION_SKIP_NEXT
 import com.example.cs426_magicmusic.others.Constants.ACTION_SKIP_PREVIOUS
-import com.example.cs426_magicmusic.others.Constants.CURRENT_SONG
 import com.example.cs426_magicmusic.others.Constants.PLAYER_CHANNEL_DESCRIPTION
 import com.example.cs426_magicmusic.others.Constants.PLAYER_CHANNEL_ID
 import com.example.cs426_magicmusic.others.Constants.PLAYER_CHANNEL_NAME
@@ -31,42 +27,24 @@ import com.example.cs426_magicmusic.others.Constants.PLAYER_NOTIFICATION_CONTENT
 import com.example.cs426_magicmusic.others.Constants.PLAYER_NOTIFICATION_CONTENT_TITLE
 import com.example.cs426_magicmusic.others.Constants.PLAYER_NOTIFICATION_ID
 import com.example.cs426_magicmusic.others.Constants.PLAYER_NOTIFICATION_REQUEST_CODE
-import com.example.cs426_magicmusic.others.Constants.STRING_UNKNOWN_ARTIST
-import com.example.cs426_magicmusic.ui.view.songplayer.SongPlayerActivity
 import com.example.cs426_magicmusic.utils.ImageUtility
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import kotlin.random.Random
-
-/**
- * Service to handle music playback, the same as PlayAudioManager, but set up as a service
- * to allow for background playback and notifications
- */
 
 class MusicPlayerService : LifecycleService() {
     private val binder = LocalBinder()
-    private var mediaPlayer: MediaPlayer = MediaPlayer()
-
-    private val _currentSongLiveData = MutableLiveData<Song>()
-    val currentSongLiveData: LiveData<Song> = _currentSongLiveData
-
-    private val _isPlayingLiveData = MutableLiveData<Boolean>()
-    val isPlayingLiveData: LiveData<Boolean> = _isPlayingLiveData
-
-    private val _currentSongPositionLiveData = MutableLiveData<Int>()
-    val currentSongPositionLiveData: LiveData<Int> = _currentSongPositionLiveData
-
-    private var currentJob = lifecycleScope.launch {}
-    private var playlist: MutableList<Song> = mutableListOf()
-    private var currentSongIndex = 0
-    private var playerMode = Constants.PlayerMode.REPEAT_ALL
+    private lateinit var musicPlayer: MusicPlayer
 
     lateinit var remoteViews: RemoteViews
     lateinit var notificationBuilder: NotificationCompat.Builder
     private lateinit var musicBroadcastReceiver: MusicBroadcastReceiver
     private var isReceiverRegistered = false
     private var isPlayingSong = false
+
+    // Expose LiveData from MusicPlayer
+    val currentSongLiveData: LiveData<Song> get() = musicPlayer.currentSongLiveData
+    val isPlayingLiveData: LiveData<Boolean> get() = musicPlayer.isPlayingLiveData
+    val currentSongPositionLiveData: LiveData<Int> get() = musicPlayer.currentSongPositionLiveData
+    val repeatModeLiveData: LiveData<Int> get() = musicPlayer.repeatModeLiveData
+    val shuffleModeLiveData: LiveData<Boolean> get() = musicPlayer.shuffleModeLiveData
 
     inner class LocalBinder : Binder() {
         fun getService(): MusicPlayerService = this@MusicPlayerService
@@ -79,11 +57,7 @@ class MusicPlayerService : LifecycleService() {
 
     override fun onCreate() {
         super.onCreate()
-        Log.d("MusicPlayerService", "onCreate called")
-
-        mediaPlayer.setOnPreparedListener {
-            it.start()
-        }
+        musicPlayer = MusicPlayer(this)
 
         // Register the BroadcastReceiver
         musicBroadcastReceiver = MusicBroadcastReceiver()
@@ -94,108 +68,47 @@ class MusicPlayerService : LifecycleService() {
         }
         registerReceiver(musicBroadcastReceiver, filter)
         isReceiverRegistered = true
+
+        Log.d("MusicPlayerService", "onCreate done")
     }
 
-    private fun playSong(song: Song) {
-        Log.d("playSong", song.title)
-        mediaPlayer.reset()
-        mediaPlayer.setDataSource(song.path)
-        mediaPlayer.prepareAsync()
-        mediaPlayer.setOnCompletionListener {
-            _isPlayingLiveData.value = false
-        }
-
-        // Update the LiveData for the current song so that ViewModel can observe it
-        setCurrentPosition(0)
-        _currentSongLiveData.postValue(song)
-        _isPlayingLiveData.postValue(true)
-
-        // If the song is not playing, we don't create the notification
-        if (!isPlayingSong) {
-            Log.d("playSong", "Creating notification")
-            createNotification()
-            isPlayingSong = true
-        }
-
-        // Update the notification with the new song information
-        updateNotification(song)
+    fun playCurrent() {
+        musicPlayer.playCurrent()
+        createOrUpdateNotification()
     }
 
-    // Function to play a song based on the mode
-    fun playNextSong(offset: Int = CURRENT_SONG) {
-        when (playerMode) {
-            Constants.PlayerMode.SHUFFLE -> {
-                currentSongIndex = Random.nextInt(playlist.size)
-            }
-
-            Constants.PlayerMode.REPEAT -> {
-                // Do nothing, same song will repeat
-            }
-
-            Constants.PlayerMode.REPEAT_ALL -> {
-                currentSongIndex = (currentSongIndex + offset) % playlist.size
-            }
-
-            Constants.PlayerMode.NONE -> {
-                // Do nothing
-            }
-        }
-        playSong(playlist[currentSongIndex])
+    fun playNext() {
+        musicPlayer.playNext()
+        createOrUpdateNotification()
     }
 
-    fun pauseSong() {
-        if (mediaPlayer.isPlaying) {
-            mediaPlayer.pause()
-            _isPlayingLiveData.postValue(false)
-        }
+    fun playPrevious() {
+        musicPlayer.playPrevious()
+        createOrUpdateNotification()
+    }
+
+    fun pause() {
+        musicPlayer.pause()
     }
 
     fun resume() {
-        if (!mediaPlayer.isPlaying) {
-            mediaPlayer.start()
-            _isPlayingLiveData.postValue(true)
-        }
+        musicPlayer.resume()
     }
 
-    private fun getSongDuration(): Int {
-        return mediaPlayer.duration
+    fun seekTo(position: Int) {
+        musicPlayer.seekTo(position)
     }
 
-    fun setCurrentPosition(position: Int) {
-        var safePosition = if (position < 0) 0 else position
-        if (safePosition > getSongDuration()) {
-            safePosition = getSongDuration()
-        }
-        mediaPlayer.seekTo(safePosition)
-
-        // Update the LiveData for the current position
-        currentJob.cancel()
-        currentJob = lifecycleScope.launch {
-            while (isActive) {
-                _currentSongPositionLiveData.postValue(mediaPlayer.currentPosition)
-                delay(Constants.UPDATE_PLAYER_POSITION_INTERVAL)
-            }
-        }
+    fun setPlaylist(songs: List<Song>, songIndex: Int) {
+        musicPlayer.setPlaylist(songs, songIndex)
     }
 
-    fun getCurrentSong(): Song {
-        return playlist[currentSongIndex]
+    fun setNextShuffleMode() {
+        musicPlayer.setNextShuffleMode()
     }
 
-    fun setCurrentSong(songIndex: Int) {
-        if (songIndex < 0 || songIndex > playlist.size) {
-            return
-        }
-        currentSongIndex = songIndex
-    }
-
-    fun setPlayerMode(mode: Constants.PlayerMode) {
-        playerMode = mode
-    }
-
-    fun setPlaylist(songs: List<Song>) {
-        playlist.clear()
-        playlist.addAll(songs)
+    fun setNextRepeatMode() {
+        musicPlayer.setNextRepeatMode()
     }
 
     override fun onDestroy() {
@@ -205,12 +118,21 @@ class MusicPlayerService : LifecycleService() {
             isReceiverRegistered = false
         }
         stopForegroundService()
-        mediaPlayer.release()
+        musicPlayer.release()
     }
 
     private fun stopForegroundService() {
-        stopForeground(STOP_FOREGROUND_DETACH) // Stops the foreground service and removes the notification
-        stopSelf() // Optionally stop the service if you want
+        stopForeground(STOP_FOREGROUND_DETACH)
+        stopSelf()
+    }
+
+    private fun createOrUpdateNotification() {
+        if (!isPlayingSong) {
+            createNotification()
+            isPlayingSong = true
+        } else {
+            updateNotification(musicPlayer.getCurrentSong()!!)
+        }
     }
 
     private fun createNotification() {
@@ -246,9 +168,11 @@ class MusicPlayerService : LifecycleService() {
             flag
         )
 
-        // Create a PendingIntent to return to the app's main activity
         val contentIntent = PendingIntent.getActivity(
-            this, 0, packageManager.getLaunchIntentForPackage(packageName), flag
+            this,
+            PLAYER_NOTIFICATION_REQUEST_CODE,
+            packageManager.getLaunchIntentForPackage(packageName),
+            flag
         )
 
         remoteViews = RemoteViews(packageName, R.layout.notification_music_player).apply {
@@ -266,14 +190,12 @@ class MusicPlayerService : LifecycleService() {
             .setContentIntent(contentIntent)
             .setOngoing(true)
 
-        // Start the service in the foreground
         startForeground(PLAYER_NOTIFICATION_ID, notificationBuilder.build())
     }
 
     private fun updateNotification(song: Song) {
         val notificationManager = NotificationManagerCompat.from(this)
 
-        // Update the RemoteViews with the new song information
         remoteViews.setTextViewText(R.id.notification_song_title, song.title)
         remoteViews.setTextViewText(R.id.notification_song_artists, song.artistNames)
 
@@ -288,7 +210,6 @@ class MusicPlayerService : LifecycleService() {
             )
         }
 
-        // Notify the notification manager to update the notification
         notificationManager.notify(1, notificationBuilder.build())
     }
 }
