@@ -14,6 +14,7 @@ import android.widget.ScrollView
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.lifecycle.lifecycleScope
@@ -63,7 +64,7 @@ class SongPlayerActivity : AppCompatActivity() {
     private var songIndex = 0
     private var incomingIntentAction: String? = null
 
-    private val songPlayerViewModel = SongPlayerViewModel()
+    private val songPlayerViewModel: SongPlayerViewModel by viewModels()
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -78,7 +79,14 @@ class SongPlayerActivity : AppCompatActivity() {
                 ACTION_PLAY_NEW_SONG -> {
                     Log.d("SongPlayerActivity", "Playing new song at index $songIndex")
                     musicPlayerService.setPlaylist(songList, songIndex)
+
+                    // Big mistake: connect -> replay
+                    // if incomingIntentAction is still ACTION_PLAY_NEW_SONG
                     musicPlayerService.playCurrent()
+
+                    // Potential fix? -> not sure
+                    // as the intent starting this activity is not cleared
+                     incomingIntentAction = null
                 }
 
                 else -> {
@@ -107,6 +115,9 @@ class SongPlayerActivity : AppCompatActivity() {
             songIndex = it.getInt(INTENT_KEY_SONG_INDEX, 0)
             Log.d("SongPlayerActivity", "New song index: $songIndex")
         }
+
+        // Fix -> could work, but extensibility is not really good
+        intent.action = null
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

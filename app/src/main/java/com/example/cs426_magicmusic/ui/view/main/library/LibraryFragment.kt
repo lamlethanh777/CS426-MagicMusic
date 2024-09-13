@@ -10,6 +10,7 @@ import android.widget.ImageButton
 import android.widget.PopupMenu
 import android.widget.ToggleButton
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -30,6 +31,7 @@ import com.example.cs426_magicmusic.others.Constants.ACTION_PLAY_NEW_SONG
 import com.example.cs426_magicmusic.others.Constants.INTENT_KEY_NEW_SONG_LIST
 import com.example.cs426_magicmusic.others.Constants.INTENT_KEY_SONG_INDEX
 import com.example.cs426_magicmusic.ui.view.songplayer.SongPlayerActivity
+import com.example.cs426_magicmusic.ui.viewmodel.GenericViewModelFactory
 import com.example.cs426_magicmusic.ui.viewmodel.LibraryViewModel
 import kotlinx.coroutines.launch
 
@@ -62,9 +64,11 @@ class LibraryFragment : Fragment() {
         var playlistRepository = PlaylistRepository(appDatabase)
 
         LocalDBSynchronizer.setupRepositories(albumRepository, artistRepository, songRepository)
-        libraryViewModel = LibraryViewModel(
-            songRepository, albumRepository, artistRepository, playlistRepository
-        )
+
+        val factory = GenericViewModelFactory(LibraryViewModel::class.java) {
+            LibraryViewModel(songRepository, albumRepository, artistRepository, playlistRepository)
+        }
+        libraryViewModel = ViewModelProvider(this, factory)[LibraryViewModel::class.java]
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

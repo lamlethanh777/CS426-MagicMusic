@@ -49,6 +49,10 @@ class SongPlayerViewModel : ViewModel() {
     private var shuffleModeObserver: Observer<Boolean>? = null
 
     fun setMusicService(musicPlayerService: MusicPlayerService) {
+        if (musicPlayerServiceRef?.get() != null) {
+            return
+        }
+
         musicPlayerServiceRef = WeakReference(musicPlayerService)
 
         currentSongObserver = Observer { song ->
@@ -89,6 +93,8 @@ class SongPlayerViewModel : ViewModel() {
             musicService.repeatModeLiveData.removeObserver(repeatModeObserver!!)
             musicService.shuffleModeLiveData.removeObserver(shuffleModeObserver!!)
         }
+
+        Log.d("SongPlayerViewModel", "onCleared")
     }
 
     fun setCurrentPlayerPosition(position: Int) {
