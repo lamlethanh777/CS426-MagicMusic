@@ -33,7 +33,7 @@ import java.net.URL
  */
 
 object ImageUtility {
-    fun loadImageFromUri(context: Context, songUri: String, view: ImageView) {
+    private fun loadImageFromUri(context: Context, songUri: String, view: ImageView) {
         val thumbnail = loadBitmap(context, songUri)
 
         if (thumbnail == null) {
@@ -51,7 +51,7 @@ object ImageUtility {
         }
     }
 
-    fun loadImageFromUrl(context: Context, imageUrl: String, view: ImageView) {
+    private fun loadImageFromUrl(context: Context, imageUrl: String, view: ImageView) {
         Glide.with(context)
             .load(imageUrl)
             .diskCacheStrategy(DiskCacheStrategy.ALL)  // Cache the original and resized versions
@@ -127,14 +127,6 @@ object ImageUtility {
             loadImageFromUri(context, songUri, view)
         else
             loadImageFromUrl(context, imageUrl, view)
-    }
-
-    fun getBitmapFromImageView(view: ImageView): Bitmap? {
-        val drawable = view.drawable
-        return when (drawable) {
-            is BitmapDrawable -> drawable.bitmap
-            else -> null
-        }
     }
 
     suspend fun loadBitmapFromUrl(context: Context, songName: String): Bitmap? {

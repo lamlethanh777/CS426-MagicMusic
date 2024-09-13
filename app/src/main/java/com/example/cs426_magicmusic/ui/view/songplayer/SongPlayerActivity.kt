@@ -10,7 +10,6 @@ import android.os.IBinder
 import android.util.Log
 import android.widget.ImageButton
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.SeekBar
 import android.widget.TextView
@@ -299,30 +298,32 @@ class SongPlayerActivity : AppCompatActivity() {
         songPlayerViewModel.currentSong.observe(this@SongPlayerActivity) { song ->
             Log.d("SongPlayerActivity", "Current song: ${song.title}")
 
-
-
             ImageUtility.loadImage(this, song.title, song.uri, imageView)
             val urlTmp = ImageUtility.loadImageUrlFromJson(song.title)
             var tmpBitmap: Bitmap? = null
 
-
-            if (urlTmp == STRING_UNKNOWN_IMAGE)
+            if (urlTmp == STRING_UNKNOWN_IMAGE) {
                 tmpBitmap = ImageUtility.loadBitmap(this, song.uri)
-            else
+            }
+            else {
                 lifecycleScope.launch {
                     tmpBitmap = ImageUtility.loadBitmapFromUrl(this@SongPlayerActivity, song.title)
                     if (tmpBitmap != null) {
-                        PaletteUtility.applyPaletteFromImage(this@SongPlayerActivity, tmpBitmap!!, innerLayout, outerLayout)
+                        PaletteUtility.applyPaletteFromImage(
+                            this@SongPlayerActivity,
+                            tmpBitmap!!,
+                            innerLayout,
+                            outerLayout
+                        )
                     }
                 }
+            }
 
             if (tmpBitmap != null) {
                 PaletteUtility.applyPaletteFromImage(this, tmpBitmap!!, innerLayout, outerLayout)
+            } else {
+                Log.d("SongPlayerActivity", "Bitmap is null")
             }
-            else {
-                Log.e("trollll", "trollll")
-            }
-
 
             songTitle.text = song.title
             artistNames.text = song.artistNames

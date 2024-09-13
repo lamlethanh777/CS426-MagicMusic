@@ -2,17 +2,11 @@ package com.example.cs426_magicmusic.utils
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
 import android.util.Log
-import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.ScrollView
-import android.widget.TextView
 import androidx.cardview.widget.CardView
-import androidx.core.graphics.drawable.toBitmap
 import androidx.palette.graphics.Palette
 import com.example.cs426_magicmusic.R
-import com.example.cs426_magicmusic.utils.ImageUtility.loadBitmap
 
 object PaletteUtility {
 
@@ -44,7 +38,7 @@ object PaletteUtility {
                 if (innerLayoutColor == 0 || outerLayoutColor == 0 || innerLayoutColor == outerLayoutColor) {
                     // This means the Palette didn't find a dominant color, and it's using white.
                     innerLayoutColor = context.getColor(R.color.link_water)
-                    outerLayoutColor = context.getColor(R.color.link_water)
+                    outerLayoutColor = context.getColor(R.color.cherub)
                     Log.d("Color", "Falling back to default color")
                 } else {
                     Log.d("Color", "Using the dominant color from the image")
