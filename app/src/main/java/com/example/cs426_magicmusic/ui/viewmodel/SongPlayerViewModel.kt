@@ -123,7 +123,7 @@ class SongPlayerViewModel : ViewModel() {
     fun getSongLyricText(): String {
         if (!isLyricLoaded) {
             _currentSong.value?.let { song ->
-                lyricText = LyricUtility.loadLyric(song.title)
+                lyricText = LyricUtility.loadLyricFromJson(song.title)
                 isLyricLoaded = true
             }
         }

@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.os.Environment
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,6 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import com.example.cs426_magicmusic.utils.LyricUtility
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -48,12 +48,12 @@ class GenerateAudioFragment : Fragment() {
         fun newInstance() = GenerateAudioFragment().apply {}
 
         val urlPrefixArray = arrayOf(
-            "https://magic-music-acc-1.vercel.app",
-            "https://magic-music-acc-2.vercel.app",
-            "https://magic-music-acc-3.vercel.app",
+            "https://magic-music-acc-0.vercel.app",
             "https://magic-music-acc-4.vercel.app",
+            "https://magic-music-acc-3.vercel.app",
+            "https://magic-music-acc-2.vercel.app",
             "https://magic-music-acc-5.vercel.app",
-            "https://magic-music-acc-0.vercel.app"
+            "https://magic-music-acc-1.vercel.app"
         )
     }
 
@@ -239,10 +239,10 @@ class GenerateAudioFragment : Fragment() {
             val files = downloadsDir.listFiles()
 
             if (files != null && files.isNotEmpty()) {
-                loadLyric()
                 val sizeDir = files.size
                 val filePath = files.getOrNull(sizeDir - audioFileIndex - 1)?.toString()
                 viewModel.statusText.postValue("${File(filePath).name}")
+                loadLyric(File(filePath).nameWithoutExtension)
 
                 filePath?.let {
                     exoPlayer?.apply {
@@ -313,21 +313,9 @@ class GenerateAudioFragment : Fragment() {
         }
     }
 
-    private fun loadLyric() {
-        val downloadsDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "magicmusic/lyric")
-        val files = downloadsDir.listFiles()
-        var filePath: String? = ""
-        var sizeDir: Int = files.size
-        if (files != null && files.isNotEmpty()) {
-            filePath = files.getOrNull(sizeDir - 1).toString()
-        }
-        val file = File(filePath)
-        if (file.exists()) {
-            val lyrics = file.readText()
-            lyricTextView.text = lyrics
-        } else {
-            lyricTextView.text = "Lyrics file not found!"
-        }
+    private fun loadLyric(fileName: String) {
+        val contentLyric = LyricUtility.loadLyricFromJson(fileName)
+        lyricTextView.text = contentLyric
     }
 
     override fun onPause() {
