@@ -1,9 +1,6 @@
 package com.example.cs426_magicmusic
 
 import android.app.AlertDialog
-import android.content.Intent
-import android.graphics.drawable.Drawable
-import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Environment
 import android.text.Editable
@@ -12,26 +9,17 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageButton
-import android.widget.ProgressBar
-import android.widget.SeekBar
-import android.widget.Switch
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.CoroutineScope
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.io.File
-import java.io.FileInputStream
-import java.io.InputStreamReader
-import java.nio.charset.Charset
 
 class GenerateAudioFragment : Fragment() {
 
@@ -51,7 +39,7 @@ class GenerateAudioFragment : Fragment() {
     private lateinit var lyricTextView: TextView
 
     private var playSongJob: Job? = null
-    private var mediaPlayer: MediaPlayer? = null
+    private var exoPlayer: ExoPlayer? = null
     private var audioFileIndex: Int = 0
     private var is_instrumental: Boolean = false
 
@@ -67,7 +55,6 @@ class GenerateAudioFragment : Fragment() {
             "https://magic-music-acc-5.vercel.app",
             "https://magic-music-acc-0.vercel.app"
         )
-
     }
 
     override fun onCreateView(
@@ -81,7 +68,6 @@ class GenerateAudioFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         viewModel = ViewModelProvider(requireActivity()).get(GenerateAudioViewModel::class.java)
-
 
         inputText = view.findViewById(R.id.inputText)
         generateButton = view.findViewById(R.id.generateButton)
@@ -97,22 +83,15 @@ class GenerateAudioFragment : Fragment() {
         seekBar = view.findViewById(R.id.seekBar)
         lyricTextView = view.findViewById(R.id.lyricTextView)
 
-
         println("userin ${viewModel.userInputText.value}")
         inputText.setText(viewModel.userInputText.value)
 
-
         inputText.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
-                // Update ViewModel when the text changes
                 viewModel.userInputText.value = s.toString()
             }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-                // You can leave this empty if you don't need it
-            }
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                // You can leave this empty if you don't need it
-            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
 
         setupObservers()
@@ -131,12 +110,10 @@ class GenerateAudioFragment : Fragment() {
                         }
                     }
                     .setNegativeButton("Cancel") { dialog, which ->
-                        // If the user cancels, just dismiss the dialog
                         dialog.dismiss()
                     }
                     .show()
-            }
-            else {
+            } else {
                 requireActivity().runOnUiThread {
                     Toast.makeText(context, "Give me some words!", Toast.LENGTH_SHORT).show()
                 }
@@ -154,13 +131,12 @@ class GenerateAudioFragment : Fragment() {
                     fragmentTransaction.commit()
                 }
                 .setNegativeButton("Wait") { dialog, which ->
-                    // If the user cancels, just dismiss the dialog
                     dialog.dismiss()
                 }
                 .show()
         }
 
-        getButton.setOnClickListener{
+        getButton.setOnClickListener {
             AlertDialog.Builder(requireContext())
                 .setTitle("Confirmation")
                 .setMessage("Download 2 recent tracks")
@@ -170,13 +146,12 @@ class GenerateAudioFragment : Fragment() {
                     }
                 }
                 .setNegativeButton("No") { dialog, which ->
-                    // If the user cancels, just dismiss the dialog
                     dialog.dismiss()
                 }
                 .show()
         }
 
-        limitButton.setOnClickListener{
+        limitButton.setOnClickListener {
             AlertDialog.Builder(requireContext())
                 .setTitle("Confirmation")
                 .setMessage("Check remain credits of all accounts. No credit loss")
@@ -188,7 +163,6 @@ class GenerateAudioFragment : Fragment() {
                     }
                 }
                 .setNegativeButton("No") { dialog, which ->
-                    // If the user cancels, just dismiss the dialog
                     dialog.dismiss()
                 }
                 .show()
@@ -202,21 +176,12 @@ class GenerateAudioFragment : Fragment() {
             swapSong()
         }
 
-
         instrumentalSwitch.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                is_instrumental = true
-            } else {
-                is_instrumental = false
-            }
+            is_instrumental = isChecked
         }
 
         lyricSwitch.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                lyricTextView.visibility = View.VISIBLE
-            } else {
-                lyricTextView.visibility = View.GONE
-            }
+            lyricTextView.visibility = if (isChecked) View.VISIBLE else View.GONE
         }
     }
 
@@ -253,12 +218,12 @@ class GenerateAudioFragment : Fragment() {
         audioFileIndex = 1 - audioFileIndex
         playSongJob?.cancel()
 
-        mediaPlayer?.let {
+        exoPlayer?.let {
             if (it.isPlaying) {
                 it.stop()
             }
             it.release()
-            mediaPlayer = null
+            exoPlayer = null
             playButton.setBackgroundResource(R.drawable.paused_button)
         }
 
@@ -267,61 +232,65 @@ class GenerateAudioFragment : Fragment() {
 
     private fun playMusic() {
         playSongJob = lifecycleScope.launch(Dispatchers.Main) {
-            if (mediaPlayer == null) {
-                mediaPlayer = MediaPlayer()
+            if (exoPlayer == null) {
+                exoPlayer = ExoPlayer.Builder(requireContext()).build()
             }
             val downloadsDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "magicmusic/audio")
             val files = downloadsDir.listFiles()
 
-            // Check if the files array is null or empty
             if (files != null && files.isNotEmpty()) {
                 loadLyric()
                 val sizeDir = files.size
-                val filePath = files.getOrNull(sizeDir - audioFileIndex - 1)?.toString()  // Get the file safely
+                val filePath = files.getOrNull(sizeDir - audioFileIndex - 1)?.toString()
                 viewModel.statusText.postValue("${File(filePath).name}")
 
                 filePath?.let {
-                    mediaPlayer?.apply {
-                        reset()
-                        setDataSource(it)
+                    exoPlayer?.apply {
+                        setMediaItem(MediaItem.fromUri(it))
                         prepare()
-                        start()
+                        play()
                     }
 
                     playButton.setBackgroundResource(R.drawable.played_button)
 
                     playButton.setOnClickListener {
-                        mediaPlayer?.let { player ->
+                        exoPlayer?.let { player ->
                             if (player.isPlaying) {
                                 player.pause()
                                 playButton.setBackgroundResource(R.drawable.paused_button)
                             } else {
-                                player.start()
+                                player.play()
                                 playButton.setBackgroundResource(R.drawable.played_button)
                             }
                         }
                     }
 
-                    mediaPlayer?.setOnCompletionListener {
-                        playButton.setBackgroundResource(R.drawable.paused_button)
-                    }
-
-                    mediaPlayer?.setOnPreparedListener {
-
-                        seekBar.max = mediaPlayer?.duration ?: 0
-                        seekBar.visibility = View.VISIBLE
-
-                        activity?.runOnUiThread(object : Runnable {
-                            override fun run() {
-                                seekBar.progress = mediaPlayer?.currentPosition ?: 0
-                                if (mediaPlayer?.isPlaying == true) {
-                                    seekBar.postDelayed(this, 100)
-                                }
+                    exoPlayer?.addListener(object : Player.Listener {
+                        override fun onPlaybackStateChanged(state: Int) {
+                            if (state == Player.STATE_ENDED) {
+                                playButton.setBackgroundResource(R.drawable.paused_button)
                             }
-                        })
-                    }
 
+                            if (state == Player.STATE_READY && exoPlayer?.playWhenReady == true) {
+                                seekBar.max = exoPlayer?.duration?.toInt() ?: 0
+                                seekBar.visibility = View.VISIBLE
 
+                                activity?.runOnUiThread(object : Runnable {
+                                    override fun run() {
+                                        if (exoPlayer == null) {
+                                            return
+                                        }
+                                        if (exoPlayer!!.isPlaying || exoPlayer!!.playbackState == Player.STATE_READY) {
+                                            seekBar.progress = exoPlayer?.currentPosition?.toInt() ?: 0
+                                        }
+                                        if (exoPlayer!!.isPlaying) {
+                                            seekBar.postDelayed(this, 100)
+                                        }
+                                    }
+                                })
+                            }
+                        }
+                    })
 
                     seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                         override fun onProgressChanged(
@@ -330,7 +299,7 @@ class GenerateAudioFragment : Fragment() {
                             fromUser: Boolean
                         ) {
                             if (fromUser) {
-                                mediaPlayer?.seekTo(progress)
+                                exoPlayer?.seekTo(progress.toLong())
                             }
                         }
 
@@ -339,7 +308,6 @@ class GenerateAudioFragment : Fragment() {
                     })
                 }
             } else {
-                // Handle case where files array is null or empty
                 viewModel.statusText.postValue("No audio files found in the directory")
             }
         }
@@ -351,19 +319,11 @@ class GenerateAudioFragment : Fragment() {
         var filePath: String? = ""
         var sizeDir: Int = files.size
         if (files != null && files.isNotEmpty()) {
-            filePath = files.getOrNull(sizeDir - 1).toString()  // Get the first file
+            filePath = files.getOrNull(sizeDir - 1).toString()
         }
         val file = File(filePath)
         if (file.exists()) {
-
-//            val inputStream = FileInputStream(file)
-//            val reader = InputStreamReader(inputStream, Charset.forName("UTF-8"))
-//            val lyrics = reader.readText()
-//            reader.close()
-
             val lyrics = file.readText()
-
-            // Set the lyrics text to the TextView
             lyricTextView.text = lyrics
         } else {
             lyricTextView.text = "Lyrics file not found!"
@@ -372,17 +332,17 @@ class GenerateAudioFragment : Fragment() {
 
     override fun onPause() {
         super.onPause()
-        mediaPlayer?.release() // Release MediaPlayer resources
+        exoPlayer?.release()
     }
 
     override fun onStop() {
         super.onStop()
-        mediaPlayer?.release() // Release MediaPlayer resources
+        exoPlayer?.release()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        mediaPlayer?.release() // Release the MediaPlayer resources if initialized
-        mediaPlayer = null // Set it to null to avoid further usage
+        exoPlayer?.release()
+        exoPlayer = null
     }
 }
