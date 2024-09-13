@@ -21,6 +21,7 @@ import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
@@ -236,14 +237,13 @@ class GenerateAudioViewModel : ViewModel() {
                 val jsonResponse = response.body?.string()
 
                 audioUrl = extractAudioUrlByIndex(jsonResponse, index)
-                lyricUrl = extractLyricUrlByIndex(jsonResponse, index)
                 title = extractTitleByIndex(jsonResponse, index)
 
                 if (!audioUrl.isNullOrEmpty()) {
                     Log.e("Valid audio URL_${index}", "Valid audio URL_${index}")
                     if (title != null) {
                         downloadAudio(audioUrl, index, title)
-                        downloadLyric(lyricUrl, index, title)
+                        downloadJsonFile(jsonResponse, index, title)
                     }  // Proceed to download
                     break
                 } else {
@@ -279,21 +279,44 @@ class GenerateAudioViewModel : ViewModel() {
         return null
     }
 
-    private fun extractLyricUrlByIndex(jsonResponse: String?, index: Int = 0): String? {
-        Log.e("extractAudioUrl", "extract index_${index}")
+    private fun downloadJsonFile(jsonResponse: String?, index: Int = 0, title: String = "") {
         try {
             jsonResponse?.let {
                 val jsonArray = JSONArray(it)
-                // Get the last item in the array (most recent record)
+
+                // Check if the index is valid
                 if (jsonArray.length() > index) {
-                    val lyricUrl = jsonArray.getJSONObject(index).getString("lyric")
-                    return lyricUrl
+                    // Extract the index-th JSON object
+                    val jsonObject = jsonArray.getJSONObject(index)
+
+                    // Convert the JSON object to a string
+                    val jsonString = jsonObject.toString(4) // Pretty-print with indent
+
+                    // Creating the directory and file
+                    val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                    val metadataFolder = File(downloadsDir, "magicmusic/metadata")
+                    if (!metadataFolder.exists()) {
+                        metadataFolder.mkdirs()  // Create the directory if it doesn't exist
+                    }
+
+                    // Generate the file name based on the title
+                    val fileName = "$title-v$index.json"
+                    val file = File(metadataFolder, fileName)
+
+                    // Write JSON string to file
+                    FileOutputStream(file).use { output ->
+                        output.write(jsonString.toByteArray())
+                        output.flush()
+                    }
+
+                    Log.d("downloadJsonFile", "File saved successfully at: ${file.absolutePath}")
+                } else {
+                    Log.e("downloadJsonFile", "Invalid index: $index")
                 }
             }
         } catch (e: Exception) {
-            Log.e("GenerateLyricFragment", "Failed_${index} to parse JSON", e)
+            Log.e("downloadJsonFile", "Failed to save JSON at index $index", e)
         }
-        return null
     }
 
     private fun extractAudioUrlByIndex(jsonResponse: String?, index: Int = 0): String? {
@@ -313,37 +336,6 @@ class GenerateAudioViewModel : ViewModel() {
         return null
     }
 
-
-    private fun downloadLyric(fileUrl: String?, index: Int = 0, title: String = "") {
-        // Replacing '\n' in the lyrics string with actual new line characters
-        val formattedLyric = fileUrl
-            ?.replace("\\n", System.lineSeparator())  // Replace \n with a single new line
-            ?.replace("[", System.lineSeparator() + "[")  // Replace \n[ with double new line and [
-
-
-        // Creating the file name using the index
-        val fileName = "${title} - v${index + 1}.txt"
-        val downloadsDir =
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        val musicFolder = File(downloadsDir, "magicmusic/lyric")
-        if (!musicFolder.exists()) {
-            musicFolder.mkdirs()  // Create the directory if it doesn't exist
-        }
-        val file = File(musicFolder, fileName)
-
-        try {
-            // Writing the formatted lyrics into the file
-            if (formattedLyric != null) {
-                val contentToWrite = "$title${System.lineSeparator()}${formattedLyric ?: ""}"
-                file.writeText(contentToWrite)
-            }
-            // Optional: You can provide feedback that the file was saved successfully
-            println("File saved successfully at: ${file.absolutePath}")
-        } catch (e: IOException) {
-            // Handle any errors during file writing
-            e.printStackTrace()
-        }
-    }
 
     private fun downloadAudio(fileUrl: String, index: Int = 0, title: String = "") {
         statusText.postValue("Preparing_${index} to download audio file...")

@@ -60,12 +60,12 @@ class GenerateAudioFragment : Fragment() {
         fun newInstance() = GenerateAudioFragment().apply {}
 
         val urlPrefixArray = arrayOf(
-            "https://magic-music-acc-1.vercel.app",
             "https://magic-music-acc-2.vercel.app",
             "https://magic-music-acc-3.vercel.app",
             "https://magic-music-acc-4.vercel.app",
             "https://magic-music-acc-5.vercel.app",
-            "https://magic-music-acc-0.vercel.app"
+            "https://magic-music-acc-0.vercel.app",
+            "https://magic-music-acc-1.vercel.app"
         )
 
     }
