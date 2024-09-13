@@ -2,6 +2,8 @@ package com.example.cs426_magicmusic.data.source.db.synchronize
 
 import android.content.ContentUris
 import android.content.Context
+import android.media.MediaMetadataRetriever
+import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import com.example.cs426_magicmusic.data.entity.Album
@@ -10,12 +12,13 @@ import com.example.cs426_magicmusic.data.entity.Song
 import com.example.cs426_magicmusic.data.repository.AlbumRepository
 import com.example.cs426_magicmusic.data.repository.ArtistRepository
 import com.example.cs426_magicmusic.data.repository.SongRepository
-import com.example.cs426_magicmusic.others.Constants.STRING_SYSTEM_UNKNOWN_TAG
 import com.example.cs426_magicmusic.others.Constants.STRING_UNKNOWN_ALBUM
 import com.example.cs426_magicmusic.others.Constants.STRING_UNKNOWN_ARTIST
+import com.example.cs426_magicmusic.others.Constants.STRING_UNKNOWN_LYRIC
 import com.example.cs426_magicmusic.others.Constants.STRING_UNKNOWN_TITLE
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 
 object LocalDBSynchronizer {
     private val _songList = mutableListOf<Song>()
@@ -27,9 +30,7 @@ object LocalDBSynchronizer {
     private lateinit var songRepository: SongRepository
 
     fun setupRepositories(
-        albumRepo: AlbumRepository,
-        artistRepo: ArtistRepository,
-        songRepo: SongRepository
+        albumRepo: AlbumRepository, artistRepo: ArtistRepository, songRepo: SongRepository
     ) {
         albumRepository = albumRepo
         artistRepository = artistRepo
@@ -45,88 +46,87 @@ object LocalDBSynchronizer {
 
             val projection = arrayOf(
                 MediaStore.Audio.Media._ID,
-                MediaStore.Audio.Media.TITLE,
                 MediaStore.Audio.Media.DATA,
-                MediaStore.Audio.Media.DURATION,
+                MediaStore.Audio.Media.TITLE,
                 MediaStore.Audio.Media.ARTIST,
                 MediaStore.Audio.Media.ALBUM,
-                MediaStore.Audio.Media.ALBUM_ID,
-                MediaStore.Audio.Media.ARTIST_ID,
-                MediaStore.Audio.Media.DATE_ADDED,
-                MediaStore.Audio.Media.DATE_MODIFIED,
-                MediaStore.Audio.Media.YEAR,
-                MediaStore.Audio.Media.GENRE
+                MediaStore.Audio.Media.DURATION
             )
 
             val cursor = context.contentResolver.query(
-                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                projection,
-                null,
-                null,
-                null
+                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, projection, null, null, null
             )
 
             cursor?.use {
                 val mediaIdIndex = cursor.getColumnIndex(MediaStore.Audio.Media._ID)
-                val titleIndex = cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)
                 val pathIndex = cursor.getColumnIndex(MediaStore.Audio.Media.DATA)
-                val durationIndex = cursor.getColumnIndex(MediaStore.Audio.Media.DURATION)
+                val titleIndex = cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)
                 val artistIndex = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)
                 val albumIndex = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)
-//                val albumIdIndex = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)
+                val durationIndex = cursor.getColumnIndex(MediaStore.Audio.Media.DURATION)
 
                 while (cursor.moveToNext()) {
                     val mediaId = cursor.getLong(mediaIdIndex)
-//                    val albumId = cursor.getString(albumIdIndex)
-                    var songTitle = cursor.getString(titleIndex)
-                    val path = cursor.getString(pathIndex)
-                    val duration = cursor.getLong(durationIndex)
-                    var artistNames =
-                        cursor.getString(artistIndex)?.takeIf { it != STRING_SYSTEM_UNKNOWN_TAG }
-                    var albumName = cursor.getString(albumIndex)
-
-                    Log.d(
-                        "LocalDBSynchronizer",
-                        "Processing song: $songTitle, path: $path, album: $albumName, artists: $artistNames"
-                    )
+                    val path = cursor.getString(pathIndex) ?: continue
 
                     val uri = ContentUris.withAppendedId(
-                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                        mediaId
+                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, mediaId
                     )
 
-                    if (path == null) {
-                        continue
-                    }
+                    val retriever = MediaMetadataRetriever()
+                    try {
+                        retriever.setDataSource(context, uri)
 
-                    songTitle = songTitle ?: STRING_UNKNOWN_TITLE
-                    artistNames = artistNames ?: STRING_UNKNOWN_ARTIST
-                    albumName = albumName ?: STRING_UNKNOWN_ALBUM
+                        val songTitle =
+                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
+                                ?: cursor.getString(titleIndex) ?: STRING_UNKNOWN_TITLE
+                        val artistNames =
+                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)
+                                ?: cursor.getString(artistIndex) ?: STRING_UNKNOWN_ARTIST
+                        val albumName =
+                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM)
+                                ?: cursor.getString(albumIndex) ?: STRING_UNKNOWN_ALBUM
+                        val duration =
+                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                                ?.toLong() ?: cursor.getLong(durationIndex) ?: 0L
 
-                    val song = Song(
-                        path = path,
-                        title = songTitle,
-                        uri = uri.toString(),
-                        duration = duration,
-                        artistNames = artistNames
-                    )
-                    _songList.add(song)
+                        Log.d(
+                            "LocalDBSynchronizer",
+                            "Processing song: $songTitle, path: $path, album: $albumName, artists: $artistNames, duration: $duration"
+                        )
 
-                    val album = Album(albumName = albumName)
+                        val lyric = getLyricForSong(songTitle)
 
-                    if (_albumsWithSongsList[album] == null) {
-                        _albumsWithSongsList[album] = mutableListOf()
-                    }
-                    _albumsWithSongsList[album]?.add(song)
+                        val song = Song(
+                            path = path,
+                            title = songTitle,
+                            uri = uri.toString(),
+                            duration = duration,
+                            artistNames = artistNames,
+                            lyricPath = lyric
+                        )
+                        _songList.add(song)
 
-                    // Handle multiple artists
-                    val artists = artistNames.split(",").map { Artist(it.trim()) }
+                        val album = Album(albumName = albumName)
 
-                    for (artist in artists) {
-                        if (_artistWithSongsList[artist] == null) {
-                            _artistWithSongsList[artist] = mutableListOf()
+                        if (_albumsWithSongsList[album] == null) {
+                            _albumsWithSongsList[album] = mutableListOf()
                         }
-                        _artistWithSongsList[artist]?.add(song)
+                        _albumsWithSongsList[album]?.add(song)
+
+                        // Handle multiple artists
+                        val artists = artistNames.split(",").map { Artist(it.trim()) }
+
+                        for (artist in artists) {
+                            if (_artistWithSongsList[artist] == null) {
+                                _artistWithSongsList[artist] = mutableListOf()
+                            }
+                            _artistWithSongsList[artist]?.add(song)
+                        }
+                    } catch (e: IllegalArgumentException) {
+                        Log.e("LocalDBSynchronizer", "Could not access URI: $uri", e)
+                    } finally {
+                        retriever.release()
                     }
                 }
             } ?: Log.e("LocalDBSynchronizer", "Cursor is null")
@@ -141,8 +141,7 @@ object LocalDBSynchronizer {
 
         Log.d("LocalDBSynchronizer", "Fetched songs from local storage: ${_songList.size}")
         Log.d(
-            "LocalDBSynchronizer",
-            "Fetched albums from local storage: ${_albumsWithSongsList.size}"
+            "LocalDBSynchronizer", "Fetched albums from local storage: ${_albumsWithSongsList.size}"
         )
         Log.d(
             "LocalDBSynchronizer",
@@ -161,13 +160,13 @@ object LocalDBSynchronizer {
         // Find newly added songs
         val newSongs = _songList.filter { song ->
             currentSongsInDb.none {
-                it.path == song.path && it.duration == song.duration
+                it.path == song.path && it.duration == song.duration && it.lyricPath == song.lyricPath
             }
         }
 
         // Find deleted songs
         val deletedSongs = currentSongsInDb.filter { song ->
-            _songList.none { it.path == song.path }
+            _songList.none { it.path == song.path && it.duration == song.duration && it.lyricPath == song.lyricPath }
         }
 
         Log.d("LocalDBSynchronizer", "New songs to add: ${newSongs.size}")
@@ -198,5 +197,38 @@ object LocalDBSynchronizer {
         Log.d("LocalDBSynchronizer", "Songs after sync: ${songRepository.fetchSongs().size}")
         Log.d("LocalDBSynchronizer", "Albums after sync: ${albumRepository.fetchAlbums().size}")
         Log.d("LocalDBSynchronizer", "Artists after sync: ${artistRepository.fetchArtists().size}")
+    }
+
+    private fun getLyricForSong(songTitle: String): String {
+        // Specify the folder where lyrics should be located
+        val lyricDirectory = File(
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+            "magicmusic/lyric"
+        )
+
+        // Check if the directory exists, if not return unknown lyric string
+        if (!lyricDirectory.exists() || !lyricDirectory.isDirectory) {
+            Log.e("LyricFinder", "Lyric directory does not exist.")
+            return STRING_UNKNOWN_LYRIC
+        }
+
+        // Search for the corresponding .txt file by song title
+        val lyricFile = File(lyricDirectory, "$songTitle.txt")
+
+//        println(lyricFile.absolutePath)
+        return lyricFile.absolutePath
+
+        // Check if the lyric file exists and return its content, else return unknown lyric string
+//        return if (lyricFile.exists()) {
+////            val inputStream = FileInputStream(lyricFile)
+////            val reader = InputStreamReader(inputStream, Charset.forName("UTF-8"))
+////            val lyrics = reader.readText()
+////            reader.close()
+////            lyrics
+//            lyricFile.readText()  // Read the content of the file
+//        } else {
+//            Log.d("LyricFinder", lyricFile.absolutePath)
+//            STRING_UNKNOWN_LYRIC
+//        }
     }
 }

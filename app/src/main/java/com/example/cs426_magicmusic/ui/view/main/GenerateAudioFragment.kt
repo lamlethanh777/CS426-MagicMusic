@@ -1,6 +1,7 @@
 package com.example.cs426_magicmusic
 
 import android.app.AlertDialog
+import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.media.MediaPlayer
 import android.os.Bundle
@@ -95,6 +96,7 @@ class GenerateAudioFragment : Fragment() {
         swapButton = view.findViewById(R.id.swapButton)
         seekBar = view.findViewById(R.id.seekBar)
         lyricTextView = view.findViewById(R.id.lyricTextView)
+
 
         println("userin ${viewModel.userInputText.value}")
         inputText.setText(viewModel.userInputText.value)
@@ -305,6 +307,7 @@ class GenerateAudioFragment : Fragment() {
                     }
 
                     mediaPlayer?.setOnPreparedListener {
+
                         seekBar.max = mediaPlayer?.duration ?: 0
                         seekBar.visibility = View.VISIBLE
 
@@ -317,6 +320,8 @@ class GenerateAudioFragment : Fragment() {
                             }
                         })
                     }
+
+
 
                     seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                         override fun onProgressChanged(
@@ -350,10 +355,13 @@ class GenerateAudioFragment : Fragment() {
         }
         val file = File(filePath)
         if (file.exists()) {
-            val inputStream = FileInputStream(file)
-            val reader = InputStreamReader(inputStream, Charset.forName("UTF-8"))
-            val lyrics = reader.readText()
-            reader.close()
+
+//            val inputStream = FileInputStream(file)
+//            val reader = InputStreamReader(inputStream, Charset.forName("UTF-8"))
+//            val lyrics = reader.readText()
+//            reader.close()
+
+            val lyrics = file.readText()
 
             // Set the lyrics text to the TextView
             lyricTextView.text = lyrics

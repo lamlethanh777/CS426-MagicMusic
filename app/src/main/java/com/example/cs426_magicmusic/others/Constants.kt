@@ -65,4 +65,5 @@ object Constants {
         const val PLAY_DIRECTION_NONE = 0
 
         const val PLAYER_DELAY_BETWEEN_SONGS = 1000L
+        const val STRING_UNKNOWN_LYRIC = "No lyric available"
 }

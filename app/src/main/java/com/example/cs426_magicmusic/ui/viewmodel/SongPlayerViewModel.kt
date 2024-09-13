@@ -8,7 +8,10 @@ import androidx.lifecycle.ViewModel
 import com.example.cs426_magicmusic.data.entity.Song
 import com.example.cs426_magicmusic.others.Constants.PLAYER_REPEAT_MODE_NONE
 import com.example.cs426_magicmusic.others.Constants.PLAYER_SHUFFLE_MODE_OFF
+import com.example.cs426_magicmusic.others.Constants.NEXT_SONG
+import com.example.cs426_magicmusic.others.Constants.PREVIOUS_SONG
 import com.example.cs426_magicmusic.service.musicplayer.MusicPlayerService
+import com.example.cs426_magicmusic.utils.LyricUtility
 import java.lang.ref.WeakReference
 
 class SongPlayerViewModel : ViewModel() {
@@ -24,6 +27,10 @@ class SongPlayerViewModel : ViewModel() {
     private val _shuffleMode = MutableLiveData(PLAYER_SHUFFLE_MODE_OFF)
     val shuffleMode: LiveData<Boolean> = _shuffleMode
 
+    private var isLyricLoaded = false
+    private var lyricText = "No lyric available"
+
+    // WeakReference to avoid memory leaks
     private var musicPlayerServiceRef: WeakReference<MusicPlayerService>? = null
 
     fun setIsPlaying() {
@@ -111,5 +118,15 @@ class SongPlayerViewModel : ViewModel() {
 
     fun setNextRepeatMode() {
         musicPlayerServiceRef?.get()?.setNextRepeatMode()
+    }
+
+    fun getSongLyricText(): String {
+        if (!isLyricLoaded) {
+            _currentSong.value?.let { song ->
+                lyricText = LyricUtility.loadLyric(song.title)
+                isLyricLoaded = true
+            }
+        }
+        return lyricText
     }
 }

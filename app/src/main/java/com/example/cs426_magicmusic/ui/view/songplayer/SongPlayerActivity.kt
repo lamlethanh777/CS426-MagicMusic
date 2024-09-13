@@ -13,6 +13,7 @@ import android.widget.SeekBar
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import com.abdelhakim.prosoundeq.ProSoundEQ
 import com.example.cs426_magicmusic.R
 import com.example.cs426_magicmusic.data.entity.Song
 import com.example.cs426_magicmusic.others.Constants.ACTION_PLAY_NEW_SONG
@@ -45,6 +46,8 @@ class SongPlayerActivity : AppCompatActivity() {
     private lateinit var repeatButton: ImageButton
     private lateinit var shuffleButton: ImageButton
     private lateinit var alarmOffButton: ImageButton
+    private lateinit var equalizerButton: ImageButton
+    private lateinit var lyricButton: ImageButton
 
     private lateinit var musicPlayerService: MusicPlayerService
 
@@ -56,9 +59,6 @@ class SongPlayerActivity : AppCompatActivity() {
 
     private val songPlayerViewModel = SongPlayerViewModel()
 
-    /**
-     * Service connection: bind the music service to the activity
-     */
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             val binder = service as MusicPlayerService.LocalBinder
@@ -87,9 +87,6 @@ class SongPlayerActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Function to handle new incoming intent (e.g., play new song)
-     */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         incomingIntentAction = intent.action
@@ -132,6 +129,8 @@ class SongPlayerActivity : AppCompatActivity() {
         repeatButton = findViewById(R.id.play_music_repeat)
         shuffleButton = findViewById(R.id.play_music_shuffle)
         alarmOffButton = findViewById(R.id.play_music_alarm_off)
+        equalizerButton = findViewById(R.id.play_music_equalizer)
+        lyricButton = findViewById(R.id.play_music_lyric)
 
         songTitle.isSelected = true
         artistNames.isSelected = true
@@ -162,6 +161,22 @@ class SongPlayerActivity : AppCompatActivity() {
     private fun setRepeatButtonListener() {
         repeatButton.setOnClickListener {
             songPlayerViewModel.setNextRepeatMode()
+        }
+        setEqualizerListener()
+        setShowLyricListener()
+    }
+
+    private fun setShowLyricListener() {
+        lyricButton.setOnClickListener {
+            val lyrics = songPlayerViewModel.getSongLyricText()
+            val bottomSheetFragment = LyricBottomSheetFragment.newInstance(lyrics)
+            bottomSheetFragment.show(supportFragmentManager, bottomSheetFragment.tag)
+        }
+    }
+
+    private fun setEqualizerListener() {
+        equalizerButton.setOnClickListener {
+            startActivity(Intent(this, ProSoundEQ::class.java))
         }
     }
 
@@ -210,9 +225,6 @@ class SongPlayerActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Function to set the retract button listener (return from SongPlayerActivity -> MainActivity)
-     */
     private fun setRetractButtonListener() {
         retractButton.setOnClickListener {
             finish()
@@ -300,10 +312,7 @@ class SongPlayerActivity : AppCompatActivity() {
 
         // Start the music service
         startService(intent)
-
-        // Bind to the service
         bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
-
         Log.d("SongPlayerActivity", "Music service started")
     }
 
