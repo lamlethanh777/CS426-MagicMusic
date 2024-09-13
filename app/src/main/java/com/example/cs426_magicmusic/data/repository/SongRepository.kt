@@ -28,18 +28,6 @@ class SongRepository (private val appDatabase: AppDatabase) {
         appDatabase.songDao().insert(song)
     }
 
-//    suspend fun updateSong(oldSongData: Song, newSongData: Song) {
-//        val newLyricPath = null
-//        if (song.lyricPath != null) {
-//            // function to create new lyric path
-//            val newLyricPath = song.lyricPath.replace(song.title, newTitle)
-//        }
-//        val newSong = song.copy(title = new, lyricPath = newLyricPath)
-//
-//        appDatabase.songDao().de
-//        appDatabase.songDao().update(newSong)
-//    }
-
     suspend fun updateSong(song: Song) {
         appDatabase.songDao().update(song)
     }
@@ -62,5 +50,10 @@ class SongRepository (private val appDatabase: AppDatabase) {
 
     suspend fun deleteSongs(songs: List<Song>) {
         appDatabase.songDao().delete(*songs.map { it }.toTypedArray())
+    }
+
+    suspend fun filterSongs(substring: String): List<Song> {
+        val query = "%$substring%"
+        return appDatabase.songDao().filterSongs(query)
     }
 }

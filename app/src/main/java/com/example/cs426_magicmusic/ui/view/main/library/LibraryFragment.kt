@@ -1,4 +1,4 @@
-package com.example.cs426_magicmusic.ui.view.main
+package com.example.cs426_magicmusic.ui.view.main.library
 
 import android.content.Intent
 import android.os.Bundle
@@ -238,14 +238,14 @@ class LibraryFragment : Fragment() {
     private fun setUpPlaylistItemAdapter() {
         listenerManager.addListener(
             Playlist::class.java,
-            object : AdapterItemListenerInterface<Playlist> {
+            object : ItemAdapterListenerInterface<Playlist> {
                 override fun onItemClicked(item: Playlist, position: Int) {
                     onClickPlaylistItem(item)
                 }
 
-                override fun onItemLongClicked(item: Playlist, position: Int) {
+                override fun onItemLongClicked(item: Playlist, position: Int) =
                     // Handle song item long click
-                }
+                    Unit
             })
 
         playlistItemAdapter = PlaylistItemAdapter(listenerManager)
@@ -254,7 +254,7 @@ class LibraryFragment : Fragment() {
     private fun setUpArtistItemAdapter() {
         listenerManager.addListener(
             Artist::class.java,
-            object : AdapterItemListenerInterface<Artist> {
+            object : ItemAdapterListenerInterface<Artist> {
                 override fun onItemClicked(item: Artist, position: Int) {
                     onClickArtistItem(item)
                 }
@@ -270,7 +270,7 @@ class LibraryFragment : Fragment() {
     private fun setUpAlbumItemAdapter() {
         listenerManager.addListener(
             Album::class.java,
-            object : AdapterItemListenerInterface<Album> {
+            object : ItemAdapterListenerInterface<Album> {
                 override fun onItemClicked(item: Album, position: Int) {
                     onClickAlbumItem(item)
                 }
@@ -286,7 +286,7 @@ class LibraryFragment : Fragment() {
     private fun setUpSongItemAdapter() {
         listenerManager.addListener(
             Song::class.java,
-            object : AdapterItemListenerInterface<Song> {
+            object : ItemAdapterListenerInterface<Song> {
                 override fun onItemClicked(item: Song, position: Int) {
                     onClickSongItem(item, position)
                     Log.d("LibraryFragment", "onItemClicked: ${item.title} and position: $position")

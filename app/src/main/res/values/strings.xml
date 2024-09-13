@@ -1,5 +1,10 @@
 <resources>
     <string name="app_name">CS426-MagicMusic</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string-array name="search_options">
+        <item>Song</item>
+        <item>Album</item>
+        <item>Artist</item>
+        <item>Playlist</item>
+    </string-array>
 </resources>

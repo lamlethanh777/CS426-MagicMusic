@@ -1,31 +1,21 @@
 package com.example.cs426_magicmusic.utils
 
-import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Environment
-import android.transition.Transition
 import android.util.Log
 import android.util.Size
 import android.widget.ImageView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.request.target.CustomTarget
 import com.example.cs426_magicmusic.R
 import com.example.cs426_magicmusic.others.Constants.STRING_UNKNOWN_IMAGE
-import com.example.cs426_magicmusic.others.Constants.STRING_UNKNOWN_LYRIC
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.File
-import java.io.IOException
-import java.io.InputStream
-import java.net.HttpURLConnection
-import java.net.URL
 
 
 /**
@@ -33,22 +23,26 @@ import java.net.URL
  */
 
 object ImageUtility {
-    private fun loadImageFromUri(context: Context, songUri: String, view: ImageView) {
-        val thumbnail = loadBitmap(context, songUri)
-
-        if (thumbnail == null) {
+    private fun loadBitmapToImageView(context: Context, bitmap: Bitmap?, view: ImageView) {
+        if (bitmap == null) {
             Glide.with(context)
                 .load(R.drawable.ic_music_note)  // Placeholder image while loading
                 .diskCacheStrategy(DiskCacheStrategy.ALL)  // Cache the original and resized versions
                 .into(view)
         } else {
             Glide.with(context)
-                .load(thumbnail)
+                .load(bitmap)
                 .diskCacheStrategy(DiskCacheStrategy.ALL)  // Cache the original and resized versions
                 .placeholder(R.drawable.placeholder_default)  // Placeholder image while loading
                 .error(R.drawable.placeholder_error)       // Image to display if the load fails
                 .into(view)
         }
+    }
+
+    private fun loadImageFromUri(context: Context, songUri: String, view: ImageView) {
+        val thumbnail = loadBitmapFromUri(context, songUri)
+
+        loadBitmapToImageView(context, thumbnail, view)
     }
 
     private fun loadImageFromUrl(context: Context, imageUrl: String, view: ImageView) {
@@ -60,7 +54,7 @@ object ImageUtility {
             .into(view)
     }
 
-    fun loadBitmap(context: Context, uri: String): Bitmap? = try {
+    fun loadBitmapFromUri(context: Context, uri: String): Bitmap? = try {
         context.contentResolver.loadThumbnail(
             Uri.parse(uri), Size(350, 350), null
         )

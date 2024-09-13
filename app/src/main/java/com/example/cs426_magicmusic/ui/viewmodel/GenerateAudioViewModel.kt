@@ -6,7 +6,7 @@ import android.view.View
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.cs426_magicmusic.GenerateAudioFragment.Companion.urlPrefixArray
+import com.example.cs426_magicmusic.ui.view.main.generate_audio.GenerateAudioFragment.Companion.urlPrefixArray
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async

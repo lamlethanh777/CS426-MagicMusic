@@ -1,4 +1,4 @@
-package com.example.cs426_magicmusic
+package com.example.cs426_magicmusic.ui.view.main.generate_audio
 
 import android.app.AlertDialog
 import android.os.Bundle
@@ -16,6 +16,8 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.example.cs426_magicmusic.utils.LyricUtility
+import com.example.cs426_magicmusic.GenerateAudioViewModel
+import com.example.cs426_magicmusic.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch

@@ -1,11 +1,10 @@
-package com.example.cs426_magicmusic.ui.view.main
+package com.example.cs426_magicmusic.ui.view.main.library
 
 import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.cs426_magicmusic.R
 
