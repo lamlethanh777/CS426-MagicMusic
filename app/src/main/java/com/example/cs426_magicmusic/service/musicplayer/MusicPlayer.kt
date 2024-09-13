@@ -39,7 +39,14 @@ class MusicPlayer(private val service: LifecycleService) {
         exoPlayer.addListener(object : Player.Listener {
             override fun onPlaybackStateChanged(state: Int) {
                 if (state == Player.STATE_ENDED) {
+                    // Handle playback ended
+                }
 
+                if (state == Player.STATE_READY && exoPlayer.playWhenReady) {
+                    // Initialize ProSoundEQ with the audio session ID
+                    ProSoundEQSettings.init(exoPlayer.audioSessionId)
+                    ProSoundEQSettings.setColor("#34ebb1")
+                    Log.d("MusicPlayer", "ProSoundEQ initialized with audio session ID: ${exoPlayer.audioSessionId}")
                 }
             }
 
@@ -48,15 +55,6 @@ class MusicPlayer(private val service: LifecycleService) {
                     val currentSong = playlist[exoPlayer.currentMediaItemIndex]
                     _currentSongLiveData.postValue(currentSong)
                     Log.d("MusicPlayer", "Media item transitioned to: ${currentSong.title}")
-                }
-            }
-
-            override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-                if (playbackState == Player.STATE_READY && playWhenReady) {
-                    // Initialize ProSoundEQ with the audio session ID
-                    ProSoundEQSettings.init(exoPlayer.audioSessionId)
-                    ProSoundEQSettings.setColor("#34ebb1")
-                    Log.d("MusicPlayer", "ProSoundEQ initialized with audio session ID: ${exoPlayer.audioSessionId}")
                 }
             }
         })
