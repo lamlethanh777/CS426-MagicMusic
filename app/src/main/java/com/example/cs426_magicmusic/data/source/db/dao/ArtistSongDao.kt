@@ -31,4 +31,13 @@ interface ArtistSongDao {
                 " WHERE artists_songs.artistName = :artistName"
     )
     suspend fun fetchSongsOfArtist(artistName: String): List<Song>
+
+    @Transaction
+    @Query(
+        "SELECT * FROM songs" +
+                " INNER JOIN artists_songs ON songs.path = artists_songs.songPath" +
+                " WHERE artists_songs.artistName = :artistName" +
+                " ORDER BY songs.title"
+    )
+    suspend fun fetchSongsOfArtistOrderByTitle(artistName: String): List<Song>
 }

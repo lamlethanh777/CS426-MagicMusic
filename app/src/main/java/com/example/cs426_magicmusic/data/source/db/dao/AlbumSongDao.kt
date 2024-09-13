@@ -27,4 +27,22 @@ interface AlbumSongDao {
                 " WHERE albums_songs.albumName = :albumName"
     )
     suspend fun fetchSongsInAlbum(albumName: String): List<Song>
+
+    @Transaction
+    @Query(
+        "SELECT * FROM songs" +
+                " INNER JOIN albums_songs ON songs.path = albums_songs.songPath" +
+                " WHERE albums_songs.albumName = :albumName" +
+                " ORDER BY songs.title"
+    )
+    suspend fun fetchSongsInAlbumOrderByTitle(albumName: String): List<Song>
+
+    @Transaction
+    @Query(
+        "SELECT * FROM songs" +
+                " INNER JOIN albums_songs ON songs.path = albums_songs.songPath" +
+                " WHERE albums_songs.albumName = :albumName" +
+                " ORDER BY songs.artistNames"
+    )
+    suspend fun fetchSongsInAlbumOrderByArtistNames(albumName: String): List<Song>
 }

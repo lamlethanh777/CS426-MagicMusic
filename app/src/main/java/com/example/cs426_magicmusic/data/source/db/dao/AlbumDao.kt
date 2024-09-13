@@ -29,4 +29,8 @@ interface AlbumDao {
     @Transaction
     @Query("SELECT * FROM albums")
     suspend fun fetchAlbums(): List<Album>
+
+    @Transaction
+    @Query("SELECT * FROM albums ORDER BY albumName")
+    suspend fun fetchAlbumsOrderByName(): List<Album>
 }

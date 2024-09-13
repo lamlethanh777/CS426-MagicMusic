@@ -29,4 +29,8 @@ interface ArtistDao {
     @Transaction
     @Query("SELECT * FROM artists")
     suspend fun fetchArtists(): List<Artist>
+
+    @Transaction
+    @Query("SELECT * FROM artists ORDER BY artistName")
+    suspend fun fetchArtistsOrderByName(): List<Artist>
 }

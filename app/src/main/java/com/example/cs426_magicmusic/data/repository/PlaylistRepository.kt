@@ -9,12 +9,24 @@ class PlaylistRepository (private val appDatabase: AppDatabase) {
         return appDatabase.playlistDao().fetchPlaylists()
     }
 
+    suspend fun fetchPlaylistsOrderByName(): List<Playlist> {
+        return appDatabase.playlistDao().fetchPlaylistsOrderByName()
+    }
+
     suspend fun deletePlaylist(playlist: Playlist) {
         appDatabase.playlistDao().delete(playlist)
     }
 
     suspend fun fetchSongsInPlaylist(playlist: Playlist): List<Song> {
         return appDatabase.playlistSongDao().fetchSongsInPlaylist(playlist.playlistName)
+    }
+
+    suspend fun fetchSongsInPlaylistOrderByTitle(playlist: Playlist): List<Song> {
+        return appDatabase.playlistSongDao().fetchSongsInPlaylistOrderByTitle(playlist.playlistName)
+    }
+
+    suspend fun fetchSongsInPlaylistOrderByArtistNames(playlist: Playlist): List<Song> {
+        return appDatabase.playlistSongDao().fetchSongsInPlaylistOrderByArtistNames(playlist.playlistName)
     }
 
     suspend fun insertSongIntoPlaylist(playlist: Playlist, song: Song) {

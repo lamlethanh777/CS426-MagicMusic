@@ -4,4 +4,6 @@
     <color name="white">#FFFFFFFF</color>
     <color name="link_water">#e2edfa</color>
     <color name="hint_of_red">#faefe2</color>
+    <color name="default_button_background">#E0E0E0</color>
+    <color name="active_button_background">#FF9800</color>
 </resources>

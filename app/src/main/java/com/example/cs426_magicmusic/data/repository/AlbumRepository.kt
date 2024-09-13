@@ -10,8 +10,20 @@ class AlbumRepository (private val appDatabase: AppDatabase) {
         return appDatabase.albumDao().fetchAlbums()
     }
 
+    suspend fun fetchAlbumsOrderByName(): List<Album> {
+        return appDatabase.albumDao().fetchAlbumsOrderByName()
+    }
+
     suspend fun fetchSongsInAlbum(albumName: String): List<Song> {
         return appDatabase.albumSongDao().fetchSongsInAlbum(albumName)
+    }
+
+    suspend fun fetchSongsInAlbumOrderByTitle(albumName: String): List<Song> {
+        return appDatabase.albumSongDao().fetchSongsInAlbumOrderByTitle(albumName)
+    }
+
+    suspend fun fetchSongsInAlbumOrderByArtistNames(albumName: String): List<Song> {
+        return appDatabase.albumSongDao().fetchSongsInAlbumOrderByArtistNames(albumName)
     }
 
     suspend fun insertAllAlbumsWithSongs(albumsWithSongsList: MutableMap<Album,
