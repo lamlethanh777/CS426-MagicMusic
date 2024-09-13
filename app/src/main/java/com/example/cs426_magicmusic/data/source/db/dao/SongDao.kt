@@ -52,4 +52,9 @@ interface SongDao {
     @Transaction
     @Query("SELECT * FROM songs ORDER BY artistNames")
     suspend fun fetchSongsOrderByArtistNames(): List<Song>
+
+    @Transaction
+    @Query("SELECT * FROM songs " +
+            "WHERE title LIKE :query")
+    suspend fun filterSongs(query: String): List<Song>
 }

@@ -21,7 +21,7 @@
         android:layout_height="70dp"
         android:padding="15dp"
         android:foreground="?selectableItemBackground"
-        android:background="@color/hint_of_red"
+        android:background="@color/cherub"
         app:layout_constraintTop_toBottomOf="@id/main_fragment"
         app:layout_constraintBottom_toTopOf="@id/bottom_navigation">
 

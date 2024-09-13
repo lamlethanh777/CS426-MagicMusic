@@ -17,7 +17,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import com.example.cs426_magicmusic.GenerateAudioFragment
+import com.example.cs426_magicmusic.ui.view.main.generate_audio.GenerateAudioFragment
 import com.example.cs426_magicmusic.R
 import com.example.cs426_magicmusic.data.repository.AlbumRepository
 import com.example.cs426_magicmusic.data.repository.ArtistRepository
@@ -26,8 +26,9 @@ import com.example.cs426_magicmusic.data.repository.SongRepository
 import com.example.cs426_magicmusic.data.source.db.AppDatabase
 import com.example.cs426_magicmusic.data.source.db.synchronize.LocalDBSynchronizer
 import com.example.cs426_magicmusic.others.Constants.ACTION_RETURN_TO_SONG_PLAYER_ACTIVITY
-import com.example.cs426_magicmusic.others.Constants.STRING_UNKNOWN_ARTIST
 import com.example.cs426_magicmusic.service.musicplayer.MusicPlayerService
+import com.example.cs426_magicmusic.ui.view.main.library.LibraryFragment
+import com.example.cs426_magicmusic.ui.view.main.search.SearchFragment
 import com.example.cs426_magicmusic.ui.view.songplayer.SongPlayerActivity
 import com.example.cs426_magicmusic.ui.viewmodel.MainViewModel
 import com.example.cs426_magicmusic.utils.ImageUtility

@@ -15,11 +15,17 @@ object PaletteUtility {
      */
     fun applyPaletteFromImage(
         context: Context,
-        bitmap: Bitmap,
+        bitmap: Bitmap?,
         innerLayout: CardView,
         outerLayout: ScrollView
     ) {
 //        val bitmap: Bitmap = imageView.drawable.toBitmap()
+
+        if (bitmap == null) {
+            innerLayout.setCardBackgroundColor(context.getColor(R.color.link_water))
+            outerLayout.setBackgroundColor(context.getColor(R.color.cherub))
+            return
+        }
 
         Palette.from(bitmap).generate { palette ->
             palette?.let {

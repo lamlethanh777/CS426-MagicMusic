@@ -1,4 +1,4 @@
-package com.example.cs426_magicmusic.ui.view.main
+package com.example.cs426_magicmusic.ui.view.main.library
 
 import android.annotation.SuppressLint
 import android.view.LayoutInflater
@@ -58,7 +58,7 @@ abstract class TemplateItemAdapter<T>(
         }
     }
 
-    private fun createGridViewHolder(parent: ViewGroup): TemplateItemAdapter<T>.TemplateViewHolder {
+    private fun createGridViewHolder(parent: ViewGroup): TemplateViewHolder {
         return TemplateViewHolder(
             LayoutInflater.from(parent.context).inflate(
                 R.layout.adapter_song_item_grid,
@@ -68,7 +68,7 @@ abstract class TemplateItemAdapter<T>(
         )
     }
 
-    private fun createListViewHolder(parent: ViewGroup): TemplateItemAdapter<T>.TemplateViewHolder {
+    private fun createListViewHolder(parent: ViewGroup): TemplateViewHolder {
         return TemplateViewHolder(
             LayoutInflater.from(parent.context).inflate(
                 R.layout.adapter_song_item_list,
@@ -81,7 +81,7 @@ abstract class TemplateItemAdapter<T>(
     @Suppress("UNCHECKED_CAST")
     override fun onBindViewHolder(holder: TemplateViewHolder, position: Int) {
         val item = itemList[position]
-        val listener = listenerManager.getListener(item!!::class.java) as? AdapterItemListenerInterface<T>
+        val listener = listenerManager.getListener(item!!::class.java) as? ItemAdapterListenerInterface<T>
         holder.onBind(item, getTitle(item), getSubtitle(item), getImageUri(item), position, listener)
     }
 
@@ -92,7 +92,7 @@ abstract class TemplateItemAdapter<T>(
 
         fun onBind(
             item: T, title: String, artists: String, imageUri: String, position: Int,
-            listener: AdapterItemListenerInterface<T>?
+            listener: ItemAdapterListenerInterface<T>?
         ) {
             _title.text = title
             _artists.text = artists

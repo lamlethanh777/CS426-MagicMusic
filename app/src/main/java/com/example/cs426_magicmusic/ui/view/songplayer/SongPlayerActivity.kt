@@ -298,32 +298,34 @@ class SongPlayerActivity : AppCompatActivity() {
         songPlayerViewModel.currentSong.observe(this@SongPlayerActivity) { song ->
             Log.d("SongPlayerActivity", "Current song: ${song.title}")
 
-            ImageUtility.loadImage(this, song.title, song.uri, imageView)
+            // Try to load from Url first
             val urlTmp = ImageUtility.loadImageUrlFromJson(song.title)
             var tmpBitmap: Bitmap? = null
 
-            if (urlTmp == STRING_UNKNOWN_IMAGE) {
-                tmpBitmap = ImageUtility.loadBitmap(this, song.uri)
-            }
-            else {
+            // There is Url
+            if (urlTmp != STRING_UNKNOWN_IMAGE) {
                 lifecycleScope.launch {
                     tmpBitmap = ImageUtility.loadBitmapFromUrl(this@SongPlayerActivity, song.title)
                     if (tmpBitmap != null) {
+                        // Can load Url -> Bitmap
                         PaletteUtility.applyPaletteFromImage(
                             this@SongPlayerActivity,
                             tmpBitmap!!,
                             innerLayout,
                             outerLayout
                         )
+                        Log.d("SongPlayerActivity", "Palette applied")
                     }
                 }
             }
 
-            if (tmpBitmap != null) {
-                PaletteUtility.applyPaletteFromImage(this, tmpBitmap!!, innerLayout, outerLayout)
-            } else {
-                Log.d("SongPlayerActivity", "Bitmap is null")
+            // Cannot load Url -> load Uri or default placeholder
+            if (tmpBitmap == null) {
+                tmpBitmap = ImageUtility.loadBitmapFromUri(this, song.uri)
+                PaletteUtility.applyPaletteFromImage(this, tmpBitmap, innerLayout, outerLayout)
             }
+
+            ImageUtility.loadImage(this, song.title, song.uri, imageView)
 
             songTitle.text = song.title
             artistNames.text = song.artistNames
