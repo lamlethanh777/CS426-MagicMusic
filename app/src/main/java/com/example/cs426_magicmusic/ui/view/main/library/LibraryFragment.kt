@@ -1,14 +1,19 @@
 package com.example.cs426_magicmusic.ui.view.main.library
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.PopupMenu
-import android.widget.ToggleButton
+import android.widget.SearchView
+import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -43,6 +48,8 @@ class LibraryFragment : Fragment() {
     private var displayOptionAdapter: DisplayOptionAdapter? = null
     private var listenerManager = ListenerManager()
     private var currentSongList = mutableListOf<Song>()
+    private var currentPlaylist: Playlist? = null
+
     private lateinit var lastFetchAction: (() -> Unit)
     private lateinit var libraryViewModel: LibraryViewModel
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
@@ -55,6 +62,12 @@ class LibraryFragment : Fragment() {
     private lateinit var popupAlbums: () -> Unit
     private lateinit var popupArtists: () -> Unit
     private lateinit var popupPlaylists: () -> Unit
+    private lateinit var viewButton: ImageButton
+    private lateinit var ascendingOrderButton: ImageButton
+    private lateinit var listNumber: TextView
+    private lateinit var listTitle: TextView
+    private lateinit var addPlaylistButton: ImageButton
+    private lateinit var addSongToPlaylistButton: ImageButton
 
     private fun initViewModel() {
         val appDatabase = AppDatabase.getDatabase(requireContext())
@@ -63,7 +76,9 @@ class LibraryFragment : Fragment() {
         var artistRepository = ArtistRepository(appDatabase)
         var playlistRepository = PlaylistRepository(appDatabase)
 
-        LocalDBSynchronizer.setupRepositories(albumRepository, artistRepository, songRepository)
+        LocalDBSynchronizer.setupRepositories(
+            albumRepository, artistRepository, songRepository, playlistRepository
+        )
 
         val factory = GenericViewModelFactory(LibraryViewModel::class.java) {
             LibraryViewModel(songRepository, albumRepository, artistRepository, playlistRepository)
@@ -112,13 +127,97 @@ class LibraryFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout)
+        viewButton = view.findViewById(R.id.library_music_list_toggle)
+        listNumber = view.findViewById(R.id.library_music_list_number)
+        ascendingOrderButton = view.findViewById(R.id.library_music_order_list_button)
+        listTitle = view.findViewById(R.id.library_music_list_title)
+        addPlaylistButton = view.findViewById(R.id.library_playlist_button)
+        addSongToPlaylistButton = view.findViewById(R.id.library_add_song_playlist_button)
 
+        setUpAddSongToPlaylistButton()
+        setUpAddPlaylistButton()
         setUpPopupMenu(view)
         setUpMusicListRecyclerView(view)
         setUpDisplayOptionRecyclerView(view)
+        setUpOrderButton()
         setUpToggleButton(view)
         subscribeToObservers()
         setClickListeners()
+    }
+
+    private fun setUpAddSongToPlaylistButton() {
+        addSongToPlaylistButton.setOnClickListener {
+            val dialogView = LayoutInflater.from(requireContext())
+                .inflate(R.layout.dialog_add_song_to_playlist, null)
+            val dialog = AlertDialog.Builder(requireContext())
+                .setView(dialogView)
+                .create()
+
+            val textView = dialogView.findViewById<TextView>(R.id.add_song_playlist_name)
+            val searchView = dialogView.findViewById<SearchView>(R.id.add_song_search_view)
+            val recyclerView = dialogView.findViewById<RecyclerView>(R.id.add_song_recycler_view)
+            val addButton = dialogView.findViewById<Button>(R.id.add_song_button)
+            val cancelButton = dialogView.findViewById<Button>(R.id.add_song_cancel_button)
+
+            textView.text = "Add song to playlist:\n${currentPlaylist!!.playlistName}"
+
+            val selectedSongs = mutableListOf<Song>()
+            val songAdapter = SearchSongPlaylistAdapter { song ->
+                if (!selectedSongs.contains(song)) {
+                    selectedSongs.add(song)
+                    Toast.makeText(requireContext(), "Adding ${song.title}", Toast.LENGTH_SHORT)
+                        .show()
+                }
+            }
+
+            recyclerView.layoutManager = LinearLayoutManager(requireContext())
+            recyclerView.adapter = songAdapter
+
+            searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                override fun onQueryTextSubmit(query: String?): Boolean {
+//                    query?.let {
+//                        libraryViewModel.filterSongs(it)
+//                    }
+                    return true
+                }
+
+                override fun onQueryTextChange(newText: String?): Boolean {
+                    newText?.let {
+                        libraryViewModel.filterSongs(it)
+                    }
+                    return true
+                }
+            })
+
+            addButton.setOnClickListener {// Replace with actual playlist name
+                libraryViewModel.addMultipleSongsToPlaylist(currentPlaylist!!, selectedSongs)
+                Toast.makeText(
+                    requireContext(),
+                    "Added ${selectedSongs.size} songs to ${currentPlaylist!!.playlistName}",
+                    Toast.LENGTH_SHORT
+                ).show()
+                dialog.dismiss()
+            }
+
+            cancelButton.setOnClickListener {
+                Toast.makeText(
+                    requireContext(), "Adding songs cancelled", Toast.LENGTH_SHORT
+                ).show()
+                dialog.dismiss()
+            }
+
+            libraryViewModel.filteredSongs.observe(viewLifecycleOwner) { songs ->
+                songAdapter.submitList(songs)
+            }
+
+            dialog.show()
+        }
+    }
+
+    private fun setUpAddPlaylistButton() {
+        addPlaylistButton.setOnClickListener {
+            showCreatePlaylistDialog()
+        }
     }
 
     private fun setClickListeners() {
@@ -134,15 +233,55 @@ class LibraryFragment : Fragment() {
     private fun subscribeToObservers() {
         libraryViewModel.songs.observe(viewLifecycleOwner) {
             songItemAdapter?.itemList = it
+            listNumber.text = "${it.size} songs"
+            musicListRecyclerView.scrollToPosition(0)
         }
         libraryViewModel.albums.observe(viewLifecycleOwner) {
             albumItemAdapter?.itemList = it
+            listNumber.text = "${it.size} albums"
+            musicListRecyclerView.scrollToPosition(0)
         }
         libraryViewModel.artists.observe(viewLifecycleOwner) {
             artistItemAdapter?.itemList = it
+            listNumber.text = "${it.size} artists"
+            musicListRecyclerView.scrollToPosition(0)
         }
         libraryViewModel.playlists.observe(viewLifecycleOwner) {
             playlistItemAdapter?.itemList = it
+            listNumber.text = "${it.size} playlists"
+            musicListRecyclerView.scrollToPosition(0)
+        }
+
+        libraryViewModel.currentLayout.observe(viewLifecycleOwner) {
+            if (it == TemplateItemAdapter.LayoutType.GRID) {
+                musicListRecyclerView.layoutManager = GridLayoutManager(
+                    context, 2, GridLayoutManager.VERTICAL, false
+                )
+                songItemAdapter?.layoutType = TemplateItemAdapter.LayoutType.GRID
+                albumItemAdapter?.layoutType = TemplateItemAdapter.LayoutType.GRID
+                artistItemAdapter?.layoutType = TemplateItemAdapter.LayoutType.GRID
+                playlistItemAdapter?.layoutType = TemplateItemAdapter.LayoutType.GRID
+                viewButton.setImageResource(R.drawable.ic_list_view)
+            } else {
+                musicListRecyclerView.layoutManager = LinearLayoutManager(
+                    context, LinearLayoutManager.VERTICAL, false
+                )
+                songItemAdapter?.layoutType = TemplateItemAdapter.LayoutType.LIST
+                albumItemAdapter?.layoutType = TemplateItemAdapter.LayoutType.LIST
+                artistItemAdapter?.layoutType = TemplateItemAdapter.LayoutType.LIST
+                playlistItemAdapter?.layoutType = TemplateItemAdapter.LayoutType.LIST
+                viewButton.setImageResource(R.drawable.ic_grid_view)
+            }
+            musicListRecyclerView.scrollToPosition(0)
+        }
+
+        libraryViewModel.ascendingOrder.observe(viewLifecycleOwner) {
+            Log.d("LibraryFragment", "reversed")
+            songItemAdapter?.itemList = songItemAdapter?.itemList?.reversed()!!
+            albumItemAdapter?.itemList = albumItemAdapter?.itemList?.reversed()!!
+            artistItemAdapter?.itemList = artistItemAdapter?.itemList?.reversed()!!
+            playlistItemAdapter?.itemList = playlistItemAdapter?.itemList?.reversed()!!
+            musicListRecyclerView.scrollToPosition(0)
         }
 
         Log.d(
@@ -163,26 +302,16 @@ class LibraryFragment : Fragment() {
         )
     }
 
+    private fun setUpOrderButton() {
+        ascendingOrderButton.setOnClickListener {
+            libraryViewModel.toggleCurrentOrder()
+        }
+    }
+
     private fun setUpToggleButton(view: View) {
-        view.findViewById<ToggleButton>(R.id.library_music_list_toggle)
-            .setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked) {
-                    musicListRecyclerView.layoutManager = GridLayoutManager(
-                        context, 2, GridLayoutManager.VERTICAL, false
-                    )
-                    songItemAdapter?.layoutType = TemplateItemAdapter.LayoutType.GRID
-                    albumItemAdapter?.layoutType = TemplateItemAdapter.LayoutType.GRID
-                    artistItemAdapter?.layoutType = TemplateItemAdapter.LayoutType.GRID
-                    playlistItemAdapter?.layoutType = TemplateItemAdapter.LayoutType.GRID
-                } else {
-                    musicListRecyclerView.layoutManager = LinearLayoutManager(
-                        context, LinearLayoutManager.VERTICAL, false
-                    )
-                    songItemAdapter?.layoutType = TemplateItemAdapter.LayoutType.LIST
-                    albumItemAdapter?.layoutType = TemplateItemAdapter.LayoutType.LIST
-                    artistItemAdapter?.layoutType = TemplateItemAdapter.LayoutType.LIST
-                    playlistItemAdapter?.layoutType = TemplateItemAdapter.LayoutType.LIST
-                }
+        view.findViewById<ImageButton>(R.id.library_music_list_toggle)
+            .setOnClickListener {
+                libraryViewModel.toggleCurrentLayout()
             }
     }
 
@@ -205,27 +334,72 @@ class LibraryFragment : Fragment() {
                 lastFetchAction = { libraryViewModel.fetchSongs() }
                 musicListRecyclerView.adapter = songItemAdapter
                 popupButton.setOnClickListener { popupSongs.invoke() }
+                listTitle.text = "All songs"
+                addPlaylistButton.visibility = View.INVISIBLE
+                addSongToPlaylistButton.visibility = View.INVISIBLE
+                currentPlaylist = null
             }
 
             "Albums" -> {
                 lastFetchAction = { libraryViewModel.fetchAllAlbums() }
                 musicListRecyclerView.adapter = albumItemAdapter
                 popupButton.setOnClickListener { popupAlbums.invoke() }
+                listTitle.text = "All albums"
+                addPlaylistButton.visibility = View.INVISIBLE
+                addSongToPlaylistButton.visibility = View.INVISIBLE
+                currentPlaylist = null
             }
 
             "Artists" -> {
                 lastFetchAction = { libraryViewModel.fetchAllArtists() }
                 musicListRecyclerView.adapter = artistItemAdapter
                 popupButton.setOnClickListener { popupArtists.invoke() }
+                listTitle.text = "All artists"
+                addPlaylistButton.visibility = View.INVISIBLE
+                addSongToPlaylistButton.visibility = View.INVISIBLE
+                currentPlaylist = null
             }
 
             "Playlists" -> {
                 lastFetchAction = { libraryViewModel.fetchAllPlaylists() }
                 musicListRecyclerView.adapter = playlistItemAdapter
                 popupButton.setOnClickListener { popupPlaylists.invoke() }
+                listTitle.text = "All playlists"
+                addPlaylistButton.visibility = View.VISIBLE
+                addSongToPlaylistButton.visibility = View.INVISIBLE
+                currentPlaylist = null
             }
         }
         lastFetchAction.invoke()
+    }
+
+    private fun showCreatePlaylistDialog() {
+        val dialogView =
+            LayoutInflater.from(requireContext()).inflate(R.layout.dialog_create_playlist, null)
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        val playlistNameInput = dialogView.findViewById<EditText>(R.id.playlist_name_input)
+        val createButton = dialogView.findViewById<Button>(R.id.create_button)
+        val cancelButton = dialogView.findViewById<Button>(R.id.cancel_button)
+
+        createButton.setOnClickListener {
+            val playlistName = playlistNameInput.text.toString()
+            if (playlistName.isNotEmpty()) {
+                libraryViewModel.addNewPlaylist(playlistName)
+            }
+            Toast.makeText(
+                requireContext(), "Created playlist: $playlistName", Toast.LENGTH_SHORT
+            ).show()
+            dialog.dismiss()
+        }
+
+        cancelButton.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 
     private fun setUpMusicListRecyclerView(view: View) {
@@ -247,9 +421,13 @@ class LibraryFragment : Fragment() {
                     onClickPlaylistItem(item)
                 }
 
-                override fun onItemLongClicked(item: Playlist, position: Int) =
-                    // Handle song item long click
-                    Unit
+                override fun onItemLongClicked(item: Playlist, position: Int) = Unit
+
+                override fun onItemMenuClicked(
+                    imageButton: ImageButton, item: Playlist, position: Int
+                ) {
+                    showPlaylistMenu(imageButton, item)
+                }
             })
 
         playlistItemAdapter = PlaylistItemAdapter(listenerManager)
@@ -263,9 +441,11 @@ class LibraryFragment : Fragment() {
                     onClickArtistItem(item)
                 }
 
-                override fun onItemLongClicked(item: Artist, position: Int) {
-                    // Handle song item long click
-                }
+                override fun onItemLongClicked(item: Artist, position: Int) = Unit
+
+                override fun onItemMenuClicked(
+                    imageButton: ImageButton, item: Artist, position: Int
+                ) = Unit
             })
 
         artistItemAdapter = ArtistItemAdapter(listenerManager)
@@ -279,9 +459,11 @@ class LibraryFragment : Fragment() {
                     onClickAlbumItem(item)
                 }
 
-                override fun onItemLongClicked(item: Album, position: Int) {
-                    // Handle song item long click
-                }
+                override fun onItemLongClicked(item: Album, position: Int) = Unit
+
+                override fun onItemMenuClicked(
+                    imageButton: ImageButton, item: Album, position: Int
+                ) = Unit
             })
 
         albumItemAdapter = AlbumItemAdapter(listenerManager)
@@ -298,6 +480,12 @@ class LibraryFragment : Fragment() {
 
                 override fun onItemLongClicked(item: Song, position: Int) {
                     // Handle song item long click
+                }
+
+                override fun onItemMenuClicked(
+                    imageButton: ImageButton, item: Song, position: Int
+                ) {
+                    showSongInPlaylistMenu(imageButton, item)
                 }
             })
 
@@ -317,6 +505,7 @@ class LibraryFragment : Fragment() {
 
     private fun onClickAlbumItem(album: Album?) {
         Log.d("LibraryFragment", "onClickAlbumItem: ${album?.albumName}")
+        listTitle.text = "Album: ${album?.albumName}"
         lastFetchAction = { libraryViewModel.fetchSongsInAlbum(album!!) }
         musicListRecyclerView.adapter = songItemAdapter
         lastFetchAction.invoke()
@@ -325,6 +514,7 @@ class LibraryFragment : Fragment() {
 
     private fun onClickArtistItem(artist: Artist?) {
         Log.d("LibraryFragment", "onClickArtistItem: ${artist?.artistName}")
+        listTitle.text = "Artist: ${artist?.artistName}"
         lastFetchAction = { libraryViewModel.fetchSongsOfArtist(artist!!) }
         musicListRecyclerView.adapter = songItemAdapter
         lastFetchAction.invoke()
@@ -333,10 +523,13 @@ class LibraryFragment : Fragment() {
 
     private fun onClickPlaylistItem(playlist: Playlist?) {
         Log.d("LibraryFragment", "onClickPlaylistItem: ${playlist?.playlistName}")
+        listTitle.text = "Playlist: ${playlist?.playlistName}"
         lastFetchAction = { libraryViewModel.fetchSongsInPlaylist(playlist!!) }
         musicListRecyclerView.adapter = songItemAdapter
         lastFetchAction.invoke()
         popupButton.setOnClickListener { popupSongsInPlaylist.invoke(playlist!!) }
+        currentPlaylist = playlist
+        addSongToPlaylistButton.visibility = View.VISIBLE
     }
 
     private fun setUpPopupMenu(view: View) {
@@ -459,6 +652,48 @@ class LibraryFragment : Fragment() {
             }
             popupMenu.show()
         }
+    }
+
+    private fun showSongInPlaylistMenu(menuButton: ImageButton, song: Song) {
+        if (currentPlaylist == null) {
+            return
+        }
+
+        val popupMenu = PopupMenu(requireContext(), menuButton)
+        popupMenu.menuInflater.inflate(R.menu.song_in_playlist_item_menu, popupMenu.menu)
+        popupMenu.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.song_playlist_popup_menu_remove -> {
+                    libraryViewModel.removeSongFromPlaylist(currentPlaylist!!, song)
+                    Toast.makeText(
+                        requireContext(),
+                        "Removed ${song.title} from ${currentPlaylist!!.playlistName}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+            true
+        }
+        popupMenu.show()
+    }
+
+    private fun showPlaylistMenu(menuButton: ImageButton, playlist: Playlist) {
+        val popupMenu = PopupMenu(requireContext(), menuButton)
+        popupMenu.menuInflater.inflate(R.menu.playlist_item_menu, popupMenu.menu)
+        popupMenu.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.playlist_popup_menu_delete -> {
+                    libraryViewModel.deletePlaylist(playlist)
+                    Toast.makeText(
+                        requireContext(),
+                        "Deleted playlist: ${playlist.playlistName}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+            true
+        }
+        popupMenu.show()
     }
 
     companion object {

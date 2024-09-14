@@ -18,10 +18,18 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
+import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.abdelhakim.prosoundeq.ProSoundEQ
 import com.example.cs426_magicmusic.R
 import com.example.cs426_magicmusic.data.entity.Song
+import com.example.cs426_magicmusic.data.repository.AlbumRepository
+import com.example.cs426_magicmusic.data.repository.ArtistRepository
+import com.example.cs426_magicmusic.data.repository.PlaylistRepository
+import com.example.cs426_magicmusic.data.repository.SongRepository
+import com.example.cs426_magicmusic.data.source.db.AppDatabase
+import com.example.cs426_magicmusic.data.source.db.synchronize.LocalDBSynchronizer
 import com.example.cs426_magicmusic.others.Constants.ACTION_PLAY_NEW_SONG
 import com.example.cs426_magicmusic.others.Constants.INTENT_KEY_NEW_SONG_LIST
 import com.example.cs426_magicmusic.others.Constants.INTENT_KEY_SONG_INDEX
@@ -30,6 +38,8 @@ import com.example.cs426_magicmusic.others.Constants.PLAYER_REPEAT_MODE_NONE
 import com.example.cs426_magicmusic.others.Constants.PLAYER_REPEAT_MODE_ONE
 import com.example.cs426_magicmusic.others.Constants.STRING_UNKNOWN_IMAGE
 import com.example.cs426_magicmusic.service.musicplayer.MusicPlayerService
+import com.example.cs426_magicmusic.ui.viewmodel.GenericViewModelFactory
+import com.example.cs426_magicmusic.ui.viewmodel.SearchViewModel
 import com.example.cs426_magicmusic.ui.viewmodel.SongPlayerViewModel
 import com.example.cs426_magicmusic.utils.ImageUtility
 import com.example.cs426_magicmusic.utils.IntentUtility.parcelableArrayList
@@ -59,6 +69,7 @@ class SongPlayerActivity : AppCompatActivity() {
     private lateinit var innerLayout: CardView
     private lateinit var outerLayout: ScrollView
 
+    private lateinit var songPlayerViewModel: SongPlayerViewModel
     private lateinit var musicPlayerService: MusicPlayerService
 
     private var shouldUpdateSeekBar = true
@@ -66,8 +77,6 @@ class SongPlayerActivity : AppCompatActivity() {
     private var songList = mutableListOf<Song>()
     private var songIndex = 0
     private var incomingIntentAction: String? = null
-
-    private val songPlayerViewModel: SongPlayerViewModel by viewModels()
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -89,7 +98,7 @@ class SongPlayerActivity : AppCompatActivity() {
 
                     // Potential fix? -> not sure
                     // as the intent starting this activity is not cleared
-                     incomingIntentAction = null
+                    incomingIntentAction = null
                 }
 
                 else -> {
@@ -102,6 +111,23 @@ class SongPlayerActivity : AppCompatActivity() {
             Log.d("SongPlayerActivity", "onServiceDisconnected")
             isServiceBound = false
         }
+    }
+
+    private fun initViewModel() {
+        val appDatabase = AppDatabase.getDatabase(this)
+        val songRepository = SongRepository(appDatabase)
+        val albumRepository = AlbumRepository(appDatabase)
+        val artistRepository = ArtistRepository(appDatabase)
+        val playlistRepository = PlaylistRepository(appDatabase)
+
+        LocalDBSynchronizer.setupRepositories(
+            albumRepository, artistRepository, songRepository, playlistRepository
+        )
+
+        val factory = GenericViewModelFactory(SongPlayerViewModel::class.java) {
+            SongPlayerViewModel(playlistRepository, songRepository)
+        }
+        songPlayerViewModel = ViewModelProvider(this, factory)[SongPlayerViewModel::class.java]
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -128,6 +154,7 @@ class SongPlayerActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_play)
 
+        initViewModel()
         onNewIntent(intent)
         initializeViews()
         subscribeToObservers()
@@ -263,11 +290,20 @@ class SongPlayerActivity : AppCompatActivity() {
     private fun subscribeToObservers() {
         subscribeToCurrentSongLiveData()
         subscribeToCurrentSongPositionLiveData()
-        subscribeToIsPlayingLiveData()
         subscribeToIsFavoriteLiveData()
+        subscribeToIsPlayingLiveData()
         subscribeToRepeatModeLiveData()
         subscribeToShuffleModeLiveData()
         subscribeToAlarmOffLiveData()
+    }
+
+    private fun subscribeToIsFavoriteLiveData() {
+        songPlayerViewModel.isFavorite.observe(this@SongPlayerActivity) { isFavorite ->
+            when {
+                isFavorite -> favoriteButton.setImageResource(R.drawable.ic_liked_30)
+                else -> favoriteButton.setImageResource(R.drawable.ic_like_30)
+            }
+        }
     }
 
     private fun subscribeToShuffleModeLiveData() {
@@ -287,10 +323,6 @@ class SongPlayerActivity : AppCompatActivity() {
                 PLAYER_REPEAT_MODE_ALL -> repeatButton.setImageResource(R.drawable.ic_repeat_all_30)
             }
         }
-    }
-
-    private fun subscribeToIsFavoriteLiveData() {
-
     }
 
     private fun subscribeToIsPlayingLiveData() {

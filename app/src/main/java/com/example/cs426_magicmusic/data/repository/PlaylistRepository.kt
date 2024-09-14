@@ -2,7 +2,9 @@ package com.example.cs426_magicmusic.data.repository
 
 import com.example.cs426_magicmusic.data.entity.Playlist
 import com.example.cs426_magicmusic.data.entity.Song
+import com.example.cs426_magicmusic.data.entity.relation.playlists_songs.PlaylistSong
 import com.example.cs426_magicmusic.data.source.db.AppDatabase
+import com.example.cs426_magicmusic.others.Constants.FAVORITE_PLAYLIST_NAME
 
 class PlaylistRepository (private val appDatabase: AppDatabase) {
     suspend fun fetchPlaylists(): List<Playlist> {
@@ -11,6 +13,10 @@ class PlaylistRepository (private val appDatabase: AppDatabase) {
 
     suspend fun fetchPlaylistsOrderByName(): List<Playlist> {
         return appDatabase.playlistDao().fetchPlaylistsOrderByName()
+    }
+
+    suspend fun insertNewPlaylist(playlist: Playlist) {
+        appDatabase.playlistDao().insert(playlist)
     }
 
     suspend fun deletePlaylist(playlist: Playlist) {
@@ -30,10 +36,18 @@ class PlaylistRepository (private val appDatabase: AppDatabase) {
     }
 
     suspend fun insertSongIntoPlaylist(playlist: Playlist, song: Song) {
-        appDatabase.playlistSongDao().insertSongIntoPlaylist(playlist.playlistName, song.path)
+        appDatabase.playlistSongDao().insert(PlaylistSong(playlist.playlistName, song.path))
     }
 
     suspend fun removeSongFromPlaylist(playlist: Playlist, song: Song) {
-        appDatabase.playlistSongDao().removeSongFromPlaylist(playlist.playlistName, song.path)
+        appDatabase.playlistSongDao().delete(PlaylistSong(playlist.playlistName, song.path))
+    }
+
+    suspend fun addSongToFavoritePlaylist(song: Song) {
+        appDatabase.playlistSongDao().insert(PlaylistSong(FAVORITE_PLAYLIST_NAME, song.path))
+    }
+
+    suspend fun deleteSongFromFavoritePlaylist(song: Song) {
+        appDatabase.playlistSongDao().delete(PlaylistSong(FAVORITE_PLAYLIST_NAME, song.path))
     }
 }

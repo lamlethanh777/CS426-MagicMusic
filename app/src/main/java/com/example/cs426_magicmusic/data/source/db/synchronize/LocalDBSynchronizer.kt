@@ -3,22 +3,25 @@ package com.example.cs426_magicmusic.data.source.db.synchronize
 import android.content.ContentUris
 import android.content.Context
 import android.media.MediaMetadataRetriever
-import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import com.example.cs426_magicmusic.data.entity.Album
 import com.example.cs426_magicmusic.data.entity.Artist
+import com.example.cs426_magicmusic.data.entity.Playlist
 import com.example.cs426_magicmusic.data.entity.Song
 import com.example.cs426_magicmusic.data.repository.AlbumRepository
 import com.example.cs426_magicmusic.data.repository.ArtistRepository
+import com.example.cs426_magicmusic.data.repository.PlaylistRepository
 import com.example.cs426_magicmusic.data.repository.SongRepository
+import com.example.cs426_magicmusic.others.Constants.FAVORITE_PLAYLIST_NAME
+import com.example.cs426_magicmusic.others.Constants.STRING_DEFAULT_ALBUM_NAME
+import com.example.cs426_magicmusic.others.Constants.STRING_DEFAULT_ARTIST_NAME
+import com.example.cs426_magicmusic.others.Constants.STRING_SYSTEM_UNKNOWN_TAG
 import com.example.cs426_magicmusic.others.Constants.STRING_UNKNOWN_ALBUM
 import com.example.cs426_magicmusic.others.Constants.STRING_UNKNOWN_ARTIST
-import com.example.cs426_magicmusic.others.Constants.STRING_UNKNOWN_LYRIC
 import com.example.cs426_magicmusic.others.Constants.STRING_UNKNOWN_TITLE
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.File
 
 object LocalDBSynchronizer {
     private val _songList = mutableListOf<Song>()
@@ -28,13 +31,18 @@ object LocalDBSynchronizer {
     private lateinit var albumRepository: AlbumRepository
     private lateinit var artistRepository: ArtistRepository
     private lateinit var songRepository: SongRepository
+    private lateinit var playlistRepository: PlaylistRepository
 
     fun setupRepositories(
-        albumRepo: AlbumRepository, artistRepo: ArtistRepository, songRepo: SongRepository
+        albumRepo: AlbumRepository,
+        artistRepo: ArtistRepository,
+        songRepo: SongRepository,
+        playlistRepo: PlaylistRepository
     ) {
         albumRepository = albumRepo
         artistRepository = artistRepo
         songRepository = songRepo
+        playlistRepository = playlistRepo
     }
 
     private suspend fun fetchLocalMusicFiles(context: Context) {
@@ -80,15 +88,25 @@ object LocalDBSynchronizer {
                         val songTitle =
                             retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
                                 ?: cursor.getString(titleIndex) ?: STRING_UNKNOWN_TITLE
-                        val artistNames =
+                        var artistNames =
                             retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)
                                 ?: cursor.getString(artistIndex) ?: STRING_UNKNOWN_ARTIST
-                        val albumName =
+                        var albumName =
                             retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM)
                                 ?: cursor.getString(albumIndex) ?: STRING_UNKNOWN_ALBUM
                         val duration =
                             retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
                                 ?.toLong() ?: cursor.getLong(durationIndex) ?: 0L
+
+                        if (artistNames == STRING_UNKNOWN_ARTIST) {
+                            artistNames = STRING_DEFAULT_ARTIST_NAME
+                            albumName = STRING_DEFAULT_ALBUM_NAME
+                        }
+
+                        if (artistNames == STRING_SYSTEM_UNKNOWN_TAG) {
+                            artistNames = STRING_UNKNOWN_ARTIST
+                            Log.d("LocalDBSynchronizer", "Unknown artist for song: $songTitle")
+                        }
 
                         Log.d(
                             "LocalDBSynchronizer",
@@ -109,7 +127,7 @@ object LocalDBSynchronizer {
                         if (_albumsWithSongsList[album] == null) {
                             _albumsWithSongsList[album] = mutableListOf()
                         }
-                        _albumsWithSongsList[album]?.add(song)
+                        _albumsWithSongsList[album]!!.add(song)
 
                         // Handle multiple artists
                         val artists = artistNames.split(",").map { Artist(it.trim()) }
@@ -131,6 +149,8 @@ object LocalDBSynchronizer {
     }
 
     suspend fun synchronizeDatabase(context: Context) {
+        playlistRepository.insertNewPlaylist(Playlist(FAVORITE_PLAYLIST_NAME))
+
         Log.d("LocalDBSynchronizer", "Starting synchronization")
 
         // Fetch the current state of the local storage
@@ -154,16 +174,23 @@ object LocalDBSynchronizer {
         Log.d("LocalDBSynchronizer", "Current albums in DB: ${currentAlbumsInDb.size}")
         Log.d("LocalDBSynchronizer", "Current artists in DB: ${currentArtistsInDb.size}")
 
+        // Find updated songs
+        val updatedSongs = _songList.filter { song ->
+            currentSongsInDb.any {
+                song.path == it.path && song != it
+            }
+        }
+
         // Find newly added songs
         val newSongs = _songList.filter { song ->
             currentSongsInDb.none {
-                it.path == song.path && it.duration == song.duration
+                song.path == it.path
             }
         }
 
         // Find deleted songs
         val deletedSongs = currentSongsInDb.filter { song ->
-            _songList.none { it.path == song.path && it.duration == song.duration}
+            _songList.none { it.path == song.path }
         }
 
         Log.d("LocalDBSynchronizer", "New songs to add: ${newSongs.size}")
@@ -171,9 +198,10 @@ object LocalDBSynchronizer {
 
         // Update the database
         songRepository.deleteSongs(deletedSongs)
+        songRepository.updateSongs(updatedSongs)
         songRepository.insertAllSongs(newSongs)
 
-        // Update albums and artists
+        // New albums and artists
         val newAlbums = _albumsWithSongsList.keys.filter { album ->
             currentAlbumsInDb.none { it.albumName == album.albumName }
         }

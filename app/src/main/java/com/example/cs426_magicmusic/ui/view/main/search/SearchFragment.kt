@@ -2,19 +2,12 @@ package com.example.cs426_magicmusic.ui.view.main.search
 
 import android.content.Intent
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.ImageView
 import android.widget.SearchView
-import android.widget.Spinner
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -26,11 +19,12 @@ import com.example.cs426_magicmusic.data.repository.PlaylistRepository
 import com.example.cs426_magicmusic.data.repository.SongRepository
 import com.example.cs426_magicmusic.data.source.db.AppDatabase
 import com.example.cs426_magicmusic.data.source.db.synchronize.LocalDBSynchronizer
-import com.example.cs426_magicmusic.others.Constants
+import com.example.cs426_magicmusic.others.Constants.ACTION_PLAY_NEW_SONG
+import com.example.cs426_magicmusic.others.Constants.INTENT_KEY_NEW_SONG_LIST
+import com.example.cs426_magicmusic.others.Constants.INTENT_KEY_SONG_INDEX
 import com.example.cs426_magicmusic.ui.view.songplayer.SongPlayerActivity
 import com.example.cs426_magicmusic.ui.viewmodel.GenericViewModelFactory
 import com.example.cs426_magicmusic.ui.viewmodel.SearchViewModel
-import com.google.android.material.search.SearchBar
 
 class SearchFragment : Fragment() {
 
@@ -46,7 +40,9 @@ class SearchFragment : Fragment() {
         val artistRepository = ArtistRepository(appDatabase)
         val playlistRepository = PlaylistRepository(appDatabase)
 
-        LocalDBSynchronizer.setupRepositories(albumRepository, artistRepository, songRepository)
+        LocalDBSynchronizer.setupRepositories(
+            albumRepository, artistRepository, songRepository, playlistRepository
+        )
 
         val factory = GenericViewModelFactory(SearchViewModel::class.java) {
             SearchViewModel(songRepository, albumRepository, artistRepository, playlistRepository)
@@ -98,11 +94,11 @@ class SearchFragment : Fragment() {
 
         val intent = Intent(context, SongPlayerActivity::class.java)
         intent.putExtra(
-            Constants.INTENT_KEY_NEW_SONG_LIST,
+            INTENT_KEY_NEW_SONG_LIST,
             ArrayList(searchedSongAdapter.itemList)
         )
-        intent.putExtra(Constants.INTENT_KEY_SONG_INDEX, position)
-        intent.action = Constants.ACTION_PLAY_NEW_SONG
+        intent.putExtra(INTENT_KEY_SONG_INDEX, position)
+        intent.action = ACTION_PLAY_NEW_SONG
         startActivity(intent)
     }
 

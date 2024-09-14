@@ -37,6 +37,8 @@
             android:name=".ui.view.main.MainActivity"
             android:theme="@style/Theme.CS426MagicMusic"
             android:exported="true">
+            android:exported="true"
+            android:configChanges="orientation|screenSize">>
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

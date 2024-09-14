@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.AsyncListDiffer
@@ -52,6 +53,7 @@ abstract class TemplateItemAdapter<T>(
             LayoutType.LIST -> {
                 createListViewHolder(parent)
             }
+
             LayoutType.GRID -> {
                 createGridViewHolder(parent)
             }
@@ -81,14 +83,18 @@ abstract class TemplateItemAdapter<T>(
     @Suppress("UNCHECKED_CAST")
     override fun onBindViewHolder(holder: TemplateViewHolder, position: Int) {
         val item = itemList[position]
-        val listener = listenerManager.getListener(item!!::class.java) as? ItemAdapterListenerInterface<T>
-        holder.onBind(item, getTitle(item), getSubtitle(item), getImageUri(item), position, listener)
+        val listener =
+            listenerManager.getListener(item!!::class.java) as? ItemAdapterListenerInterface<T>
+        holder.onBind(
+            item, getTitle(item), getSubtitle(item), getImageUri(item), position, listener
+        )
     }
 
     inner class TemplateViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private var _image = itemView.findViewById<ImageView>(R.id.item_song_image)
         private var _title = itemView.findViewById<TextView>(R.id.item_song_title)
         private var _artists = itemView.findViewById<TextView>(R.id.item_song_artists)
+        private var _menuButton = itemView.findViewById<ImageButton>(R.id.item_song_menu)
 
         fun onBind(
             item: T, title: String, artists: String, imageUri: String, position: Int,
@@ -97,10 +103,14 @@ abstract class TemplateItemAdapter<T>(
             _title.text = title
             _artists.text = artists
             ImageUtility.loadImage(itemView.context, title, imageUri, _image)
+
             itemView.setOnClickListener { listener?.onItemClicked(item, position) }
             itemView.setOnLongClickListener {
                 listener?.onItemLongClicked(item, position)
                 true
+            }
+            _menuButton.setOnClickListener {
+                listener?.onItemMenuClicked(_menuButton, item, position)
             }
         }
     }

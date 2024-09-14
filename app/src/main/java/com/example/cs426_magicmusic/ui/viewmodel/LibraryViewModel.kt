@@ -1,5 +1,6 @@
 package com.example.cs426_magicmusic.ui.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -12,6 +13,7 @@ import com.example.cs426_magicmusic.data.repository.AlbumRepository
 import com.example.cs426_magicmusic.data.repository.ArtistRepository
 import com.example.cs426_magicmusic.data.repository.PlaylistRepository
 import com.example.cs426_magicmusic.data.repository.SongRepository
+import com.example.cs426_magicmusic.ui.view.main.library.TemplateItemAdapter
 import kotlinx.coroutines.launch
 
 class LibraryViewModel(
@@ -20,6 +22,12 @@ class LibraryViewModel(
     private val artistRepository: ArtistRepository,
     private val playlistRepository: PlaylistRepository
 ) : ViewModel() {
+
+    private val _currentLayout = MutableLiveData(TemplateItemAdapter.LayoutType.LIST)
+    val currentLayout: LiveData<TemplateItemAdapter.LayoutType> get() = _currentLayout
+
+    private val _ascendingOrder = MutableLiveData(true)
+    val ascendingOrder: LiveData<Boolean> get() = _ascendingOrder
 
     private val _songs = MutableLiveData<List<Song>>()
     val songs: LiveData<List<Song>> get() = _songs
@@ -32,6 +40,32 @@ class LibraryViewModel(
 
     private val _playlists = MutableLiveData<List<Playlist>>()
     val playlists: LiveData<List<Playlist>> get() = _playlists
+
+    private val _filteredSongs = MutableLiveData<List<Song>>()
+    val filteredSongs: LiveData<List<Song>> = _filteredSongs
+
+    private val _substring = MutableLiveData("")
+    val substring: LiveData<String> = _substring
+
+    fun filterSongs(substring: String) {
+        _substring.value = substring
+        viewModelScope.launch {
+            _filteredSongs.value = songRepository.filterSongs(substring)
+        }
+    }
+
+    fun toggleCurrentOrder() {
+        _ascendingOrder.value = _ascendingOrder.value!! != true
+        Log.d("LibraryViewModel", "toggleCurrentOrder: ${_ascendingOrder.value}")
+    }
+
+    fun toggleCurrentLayout() {
+        _currentLayout.value = when (_currentLayout.value) {
+            TemplateItemAdapter.LayoutType.LIST -> TemplateItemAdapter.LayoutType.GRID
+            TemplateItemAdapter.LayoutType.GRID -> TemplateItemAdapter.LayoutType.LIST
+            else -> TemplateItemAdapter.LayoutType.LIST
+        }
+    }
 
     fun fetchSongs() {
         viewModelScope.launch {
@@ -156,9 +190,25 @@ class LibraryViewModel(
         }
     }
 
+    fun addNewPlaylist(playlistName: String) {
+        viewModelScope.launch {
+            playlistRepository.insertNewPlaylist(Playlist(playlistName = playlistName))
+            _playlists.value = playlistRepository.fetchPlaylists()
+        }
+    }
+
     fun addSongToPlaylist(playlist: Playlist, song: Song) {
         viewModelScope.launch {
             playlistRepository.insertSongIntoPlaylist(playlist, song)
+            _playlists.value = playlistRepository.fetchPlaylists()
+        }
+    }
+
+    fun addMultipleSongsToPlaylist(playlist: Playlist, songs: List<Song>) {
+        viewModelScope.launch {
+            songs.forEach { song ->
+                playlistRepository.insertSongIntoPlaylist(playlist, song)
+            }
             _playlists.value = playlistRepository.fetchPlaylists()
         }
     }

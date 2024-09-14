@@ -105,7 +105,9 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         var albumRepository = AlbumRepository(appDatabase)
         var artistRepository = ArtistRepository(appDatabase)
         var playlistRepository = PlaylistRepository(appDatabase)
-        LocalDBSynchronizer.setupRepositories(albumRepository, artistRepository, songRepository)
+        LocalDBSynchronizer.setupRepositories(
+            albumRepository, artistRepository, songRepository, playlistRepository
+        )
         lifecycleScope.launch {
             LocalDBSynchronizer.synchronizeDatabase(this@MainActivity)
         }

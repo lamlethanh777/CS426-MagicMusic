@@ -49,6 +49,8 @@ object Constants {
         const val STRING_UNKNOWN_ALBUM = "Unknown Album"
         const val STRING_UNKNOWN_TITLE = "Unknown Title"
         const val STRING_SYSTEM_UNKNOWN_TAG = "<unknown>"
+        const val STRING_DEFAULT_ALBUM_NAME = "Magic Music"
+        const val STRING_DEFAULT_ARTIST_NAME = "Magic Music"
 
         const val NUMBER_OF_REPEAT_MODE = 3
         const val PLAYER_REPEAT_MODE_NONE = 0
@@ -67,4 +69,6 @@ object Constants {
         const val PLAYER_DELAY_BETWEEN_SONGS = 1000L
         const val STRING_UNKNOWN_LYRIC = "No lyric available"
         const val STRING_UNKNOWN_IMAGE = "No image available"
+
+        const val FAVORITE_PLAYLIST_NAME = "Favorite"
 }
