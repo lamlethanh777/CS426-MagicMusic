@@ -5,23 +5,16 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.map
-import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.viewModelFactory
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import com.example.cs426_magicmusic.data.entity.Song
 import com.example.cs426_magicmusic.data.repository.PlaylistRepository
 import com.example.cs426_magicmusic.data.repository.SongRepository
 import com.example.cs426_magicmusic.others.Constants.PLAYER_REPEAT_MODE_NONE
 import com.example.cs426_magicmusic.others.Constants.PLAYER_SHUFFLE_MODE_OFF
-import com.example.cs426_magicmusic.others.Constants.NEXT_SONG
-import com.example.cs426_magicmusic.others.Constants.PREVIOUS_SONG
-import com.example.cs426_magicmusic.service.musicplayer.MusicPlayerService
+import com.example.cs426_magicmusic.service.music_player.MusicPlayerService
 import com.example.cs426_magicmusic.utils.LyricUtility
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 

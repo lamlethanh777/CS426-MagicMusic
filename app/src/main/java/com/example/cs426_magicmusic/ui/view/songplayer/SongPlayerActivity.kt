@@ -15,10 +15,8 @@ import android.widget.ScrollView
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.abdelhakim.prosoundeq.ProSoundEQ
@@ -37,15 +35,13 @@ import com.example.cs426_magicmusic.others.Constants.PLAYER_REPEAT_MODE_ALL
 import com.example.cs426_magicmusic.others.Constants.PLAYER_REPEAT_MODE_NONE
 import com.example.cs426_magicmusic.others.Constants.PLAYER_REPEAT_MODE_ONE
 import com.example.cs426_magicmusic.others.Constants.STRING_UNKNOWN_IMAGE
-import com.example.cs426_magicmusic.service.musicplayer.MusicPlayerService
+import com.example.cs426_magicmusic.service.music_player.MusicPlayerService
 import com.example.cs426_magicmusic.ui.viewmodel.GenericViewModelFactory
-import com.example.cs426_magicmusic.ui.viewmodel.SearchViewModel
 import com.example.cs426_magicmusic.ui.viewmodel.SongPlayerViewModel
 import com.example.cs426_magicmusic.utils.ImageUtility
 import com.example.cs426_magicmusic.utils.IntentUtility.parcelableArrayList
 import com.example.cs426_magicmusic.utils.PaletteUtility
 import com.example.cs426_magicmusic.utils.TimeFormatUtility.formatTimestampToMMSS
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Calendar
 

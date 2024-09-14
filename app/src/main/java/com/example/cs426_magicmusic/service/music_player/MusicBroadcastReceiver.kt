@@ -1,4 +1,4 @@
-package com.example.cs426_magicmusic.service.musicplayer
+package com.example.cs426_magicmusic.service.music_player
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -8,8 +8,6 @@ import com.example.cs426_magicmusic.R
 import com.example.cs426_magicmusic.others.Constants.ACTION_PLAY_PAUSE
 import com.example.cs426_magicmusic.others.Constants.ACTION_SKIP_NEXT
 import com.example.cs426_magicmusic.others.Constants.ACTION_SKIP_PREVIOUS
-import com.example.cs426_magicmusic.others.Constants.PLAY_DIRECTION_NEXT
-import com.example.cs426_magicmusic.others.Constants.PLAY_DIRECTION_PREVIOUS
 
 class MusicBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {

@@ -11,7 +11,6 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.cs426_magicmusic.R
 import com.example.cs426_magicmusic.data.entity.Song
-import com.example.cs426_magicmusic.ui.view.main.library.ItemAdapterListenerInterface
 import com.example.cs426_magicmusic.utils.ImageUtility
 
 class SearchedSongAdapter(

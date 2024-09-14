@@ -2,7 +2,6 @@ package com.example.cs426_magicmusic.utils
 
 import android.os.Environment
 import android.util.Log
-import com.example.cs426_magicmusic.others.Constants
 import com.example.cs426_magicmusic.others.Constants.STRING_UNKNOWN_LYRIC
 import org.json.JSONObject
 import java.io.File

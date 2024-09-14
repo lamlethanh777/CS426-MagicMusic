@@ -4,9 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.cs426_magicmusic.data.entity.Album
-import com.example.cs426_magicmusic.data.entity.Artist
-import com.example.cs426_magicmusic.data.entity.Playlist
 import com.example.cs426_magicmusic.data.entity.Song
 import com.example.cs426_magicmusic.data.repository.AlbumRepository
 import com.example.cs426_magicmusic.data.repository.ArtistRepository

@@ -1,15 +1,11 @@
 package com.example.cs426_magicmusic.ui.view.main.library
 
-import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.graphics.drawable.TransitionDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.FrameLayout
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.cs426_magicmusic.R
 
