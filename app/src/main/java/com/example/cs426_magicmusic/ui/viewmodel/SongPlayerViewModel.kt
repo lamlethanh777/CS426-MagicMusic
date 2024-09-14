@@ -5,6 +5,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewModelScope
 import com.example.cs426_magicmusic.data.entity.Song
 import com.example.cs426_magicmusic.others.Constants.PLAYER_REPEAT_MODE_NONE
 import com.example.cs426_magicmusic.others.Constants.PLAYER_SHUFFLE_MODE_OFF
@@ -12,6 +14,9 @@ import com.example.cs426_magicmusic.others.Constants.NEXT_SONG
 import com.example.cs426_magicmusic.others.Constants.PREVIOUS_SONG
 import com.example.cs426_magicmusic.service.musicplayer.MusicPlayerService
 import com.example.cs426_magicmusic.utils.LyricUtility
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 
 class SongPlayerViewModel : ViewModel() {
@@ -26,6 +31,10 @@ class SongPlayerViewModel : ViewModel() {
     val repeatMode: LiveData<Int> = _repeatMode
     private val _shuffleMode = MutableLiveData(PLAYER_SHUFFLE_MODE_OFF)
     val shuffleMode: LiveData<Boolean> = _shuffleMode
+    private val _alarmMode = MutableLiveData<Boolean>(false)
+    val alarmMode: LiveData<Boolean> = _alarmMode
+
+    private var alarmJob: Job? = null
 
     private var isLyricLoaded = false
     private var lyricText = "No lyric available"
@@ -42,11 +51,32 @@ class SongPlayerViewModel : ViewModel() {
         }
     }
 
+    fun setAlarmMode(durationInMillis: Int) {
+        _alarmMode.value = !(alarmMode.value ?: false)
+        if (alarmMode.value == true) {
+            startAlarmJob(durationInMillis)
+        } else {
+            alarmJob?.cancel()
+            Log.d("AlarmViewModel", "TimePicker cancelled")
+        }
+    }
+
+    private fun startAlarmJob(durationInMillis: Int) {
+        // Start the countdown using a coroutine
+        alarmJob = viewModelScope.launch {
+            delay(durationInMillis.toLong())
+            Log.d("SongPlayerActivity", "Playing after countdown: $durationInMillis milliseconds")
+            musicPlayerServiceRef?.get()?.pause()
+            setAlarmMode(0)
+        }
+    }
+
     private var currentSongObserver: Observer<Song?>? = null
     private var isPlayingObserver: Observer<Boolean>? = null
     private var currentPositionObserver: Observer<Int>? = null
     private var repeatModeObserver: Observer<Int>? = null
     private var shuffleModeObserver: Observer<Boolean>? = null
+    private var alarmModeObserver: Observer<Boolean>? = null
 
     fun setMusicService(musicPlayerService: MusicPlayerService) {
         if (musicPlayerServiceRef?.get() != null) {
@@ -76,12 +106,16 @@ class SongPlayerViewModel : ViewModel() {
         shuffleModeObserver = Observer {
             _shuffleMode.value = it
         }
+        alarmModeObserver = Observer {
+            _alarmMode.value = it
+        }
 
         musicPlayerService.currentSongLiveData.observeForever(currentSongObserver!!)
         musicPlayerService.isPlayingLiveData.observeForever(isPlayingObserver!!)
         musicPlayerService.currentSongPositionLiveData.observeForever(currentPositionObserver!!)
         musicPlayerService.repeatModeLiveData.observeForever(repeatModeObserver!!)
         musicPlayerService.shuffleModeLiveData.observeForever(shuffleModeObserver!!)
+        musicPlayerService.alarmModeLiveData.observeForever(alarmModeObserver!!)
     }
 
     override fun onCleared() {

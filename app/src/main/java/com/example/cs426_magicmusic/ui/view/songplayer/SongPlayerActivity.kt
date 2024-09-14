@@ -1,5 +1,6 @@
 package com.example.cs426_magicmusic.ui.view.songplayer
 
+import android.app.TimePickerDialog
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -34,7 +35,9 @@ import com.example.cs426_magicmusic.utils.ImageUtility
 import com.example.cs426_magicmusic.utils.IntentUtility.parcelableArrayList
 import com.example.cs426_magicmusic.utils.PaletteUtility
 import com.example.cs426_magicmusic.utils.TimeFormatUtility.formatTimestampToMMSS
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 class SongPlayerActivity : AppCompatActivity() {
     private lateinit var textFrom: TextView
@@ -168,7 +171,14 @@ class SongPlayerActivity : AppCompatActivity() {
     }
 
     private fun setAlarmOffButtonListener() {
-
+        alarmOffButton.setOnClickListener {
+            if (songPlayerViewModel.alarmMode.value == false) {
+                showTimePickerDialog()
+            }
+            else {
+                songPlayerViewModel.setAlarmMode(0) // turn off alarmMode
+            }
+        }
     }
 
     private fun setShuffleButtonListener() {
@@ -260,10 +270,6 @@ class SongPlayerActivity : AppCompatActivity() {
         subscribeToAlarmOffLiveData()
     }
 
-    private fun subscribeToAlarmOffLiveData() {
-
-    }
-
     private fun subscribeToShuffleModeLiveData() {
         songPlayerViewModel.shuffleMode.observe(this@SongPlayerActivity) { shuffleMode ->
             when (shuffleMode) {
@@ -350,6 +356,43 @@ class SongPlayerActivity : AppCompatActivity() {
                 else -> favoriteButton.setImageResource(R.drawable.ic_like_30)
             }
         }
+    }
+
+    private fun subscribeToAlarmOffLiveData() {
+        songPlayerViewModel.alarmMode.observe(this@SongPlayerActivity) { alarmMode ->
+            when (alarmMode) {
+                false -> alarmOffButton.alpha= 0.4f
+                true -> alarmOffButton.alpha= 1.0f
+            }
+        }
+    }
+
+    private fun showTimePickerDialog() {
+        val currentTime = Calendar.getInstance()
+        val hour = currentTime.get(Calendar.HOUR_OF_DAY)
+        val minute = currentTime.get(Calendar.MINUTE)
+
+        val timePickerDialog = TimePickerDialog(
+            this,
+            { _, selectedHour, selectedMinute ->
+                // Calculate duration in milliseconds
+                val durationInMillis = (selectedHour * 60 * 60 * 1000) + (selectedMinute * 60 * 1000)
+                songPlayerViewModel.setAlarmMode(durationInMillis)
+            },
+            0,
+            0,
+            true // Set is24HourView to true to use the 24-hour clock
+        )
+
+        timePickerDialog.setCanceledOnTouchOutside(true)
+
+        timePickerDialog.setOnCancelListener {
+            Log.d("SongPlayerActivity", "TimePicker cancelled")
+            // Nothing happens here
+        }
+
+        timePickerDialog.setTitle("Select Countdown Duration")
+        timePickerDialog.show()
     }
 
     override fun onStart() {

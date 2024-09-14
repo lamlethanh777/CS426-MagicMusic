@@ -27,6 +27,7 @@ import com.example.cs426_magicmusic.data.source.db.AppDatabase
 import com.example.cs426_magicmusic.data.source.db.synchronize.LocalDBSynchronizer
 import com.example.cs426_magicmusic.others.Constants.ACTION_RETURN_TO_SONG_PLAYER_ACTIVITY
 import com.example.cs426_magicmusic.service.musicplayer.MusicPlayerService
+import com.example.cs426_magicmusic.ui.view.main.about.AboutFragment
 import com.example.cs426_magicmusic.ui.view.main.generate_audio.GenerateAudioFragment
 import com.example.cs426_magicmusic.ui.view.main.library.LibraryFragment
 import com.example.cs426_magicmusic.ui.view.main.search.SearchFragment
@@ -71,6 +72,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(R.style.Theme_CS426MagicMusic)
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
@@ -147,6 +149,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
                 R.id.navigation_generate_audio -> {
                     fragment = GenerateAudioFragment.newInstance()
+                }
+
+                R.id.navigation_about -> {
+                    fragment = AboutFragment.newInstance()
                 }
             }
             mainViewModel.setCurrentFragment(fragment)

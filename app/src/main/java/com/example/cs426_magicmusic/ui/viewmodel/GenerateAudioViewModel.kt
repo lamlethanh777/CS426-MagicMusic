@@ -6,6 +6,7 @@ import android.view.View
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.cs426_magicmusic.ui.view.main.generate_audio.GenerateAudioFragment.Companion.urlArraySize
 import com.example.cs426_magicmusic.ui.view.main.generate_audio.GenerateAudioFragment.Companion.urlPrefixArray
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -23,11 +24,13 @@ import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.security.SecureRandom
 import java.util.concurrent.TimeUnit
 
 
 class GenerateAudioViewModel : ViewModel() {
     private val maxTrack = 2
+
 
     val progress = MutableLiveData<Int>()
     val statusText = MutableLiveData<String>()
@@ -39,21 +42,35 @@ class GenerateAudioViewModel : ViewModel() {
     val progressBarVisibility = MutableLiveData<Int>()
     val statusTextVisibility = MutableLiveData<Int>()
     val toastMessage = MutableLiveData<String>()
+    val snackMessage = MutableLiveData<String>()
+    val generateButtonVisibility = MutableLiveData<Int>()
 
     // Input field state
 
     var totalDownloaded: Int = 0 // Number of audios completely downloaded
     var totalGenerating: Int = 0 // Number of audios successfully posted
+    private var urlArrayStartIndex: Int = 0 // Start index of urlPrefixArray
+
     private var progressJob: Job? = null
-
-    private val REQUEST_WRITE_PERMISSION_CODE = 1001
-
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(120, TimeUnit.SECONDS)
         .writeTimeout(120, TimeUnit.SECONDS)
         .readTimeout(120, TimeUnit.SECONDS)
         .build()
+
+    fun increaseStartIndex(isRandom: Boolean = false) {
+        val secureRandom = SecureRandom()
+
+        urlArrayStartIndex = if (isRandom) {
+            // Generate a secure random number between 1 and urlArraySize - 1
+            val randomIncrement = secureRandom.nextInt(urlArraySize - 1) + 1
+            (urlArrayStartIndex + randomIncrement) % urlArraySize
+        } else {
+            // Increase by 1 normally
+            (urlArrayStartIndex + 1) % urlArraySize
+        }
+    }
 
     fun resetViewModelState() {
         progress.value = 0
@@ -64,7 +81,9 @@ class GenerateAudioViewModel : ViewModel() {
         swapButtonVisibility.value = View.VISIBLE
         progressBarVisibility.value = View.GONE
         statusTextVisibility.value = View.VISIBLE
+        generateButtonVisibility.value = View.VISIBLE
         toastMessage.value = ""
+        snackMessage.value = ""
 
         totalDownloaded = 0
         totalGenerating = 0
@@ -73,6 +92,7 @@ class GenerateAudioViewModel : ViewModel() {
 
     init {
         resetViewModelState()
+//        increaseStartIndex(true)
     }
 
     // Function for POST requests
@@ -135,7 +155,7 @@ class GenerateAudioViewModel : ViewModel() {
             val remainToken = jsonResponse?.let { JSONObject(it).getInt("credits_left") }
             Log.d("credits_left", "$urlPrefix: $remainToken")
 
-            triggerToast(urlPrefix + " " + remainToken.toString());
+//            triggerToast(urlPrefix + " " + remainToken.toString());
             remainToken!! > 0  // return true if there are remaining tokens
         } else {
             Log.e("checkLimit", "Failed to get limit from $urlPrefix")
@@ -147,12 +167,18 @@ class GenerateAudioViewModel : ViewModel() {
         toastMessage.postValue(message)
     }
 
-    suspend fun generateMusic(inputText: String, isInstrumental: Boolean) {
-        triggerToast("Start generating")
-        Log.e("Generate", "Start generating")
+    private fun triggerSnack(message: String) {
+        snackMessage.postValue(message)
+    }
 
+    suspend fun generateMusic(inputText: String, isInstrumental: Boolean) {
         var urlPrefix = ""
-        for (url in urlPrefixArray) {
+        for (i in 0 until urlArraySize) {
+            // Calculate the index using the modulo operator to wrap around
+            val index = (urlArrayStartIndex + i) % urlArraySize
+            val url = urlPrefixArray[index]
+
+            // Call your check function
             if (checkLimit(url)) {
                 urlPrefix = url
                 break
@@ -173,14 +199,14 @@ class GenerateAudioViewModel : ViewModel() {
 
             if (response != null && response.isSuccessful) {
                 triggerToast("POST succeed")
-                Log.e("succeed", response.toString())
                 val jsonResponse = response.body?.string()
                 if (jsonResponse != null) {
                     Log.e("succeed", jsonResponse)
                 }
                 fetchHistoryRecords(urlPrefix)
             } else {
-                triggerToast("Failed to generate music")
+                triggerSnack("Current service failed. Press New task")
+                generateButtonVisibility.postValue(View.GONE)
             }
         } else {
             triggerToast("No available tokens")
@@ -188,16 +214,18 @@ class GenerateAudioViewModel : ViewModel() {
     }
 
     suspend fun fetchHistoryRecords(_urlPrefix: String = "") {
-        println("fetchHistoryRecords")
         var urlPrefix = _urlPrefix
 
         // Loop through the URL prefix array to find a valid one
-        if (urlPrefix == "") {
-            for (url in urlPrefixArray) {
-                if (checkLimit(url)) {
-                    urlPrefix = url
-                    break
-                }
+        for (i in 0 until urlArraySize) {
+            // Calculate the index using the modulo operator to wrap around
+            val index = (urlArrayStartIndex + i) % urlArraySize
+            val url = urlPrefixArray[index]
+
+            // Call your check function
+            if (checkLimit(url)) {
+                urlPrefix = url
+                break
             }
         }
 
@@ -236,8 +264,15 @@ class GenerateAudioViewModel : ViewModel() {
             if (response != null && response.isSuccessful) {
                 val jsonResponse = response.body?.string()
 
-                audioUrl = extractAudioUrlByIndex(jsonResponse, index)
                 title = extractTitleByIndex(jsonResponse, index)
+
+                if (title == null) {
+                    triggerToast("No records found")
+                    resetProgress()
+                    return
+                }
+
+                audioUrl = extractAudioUrlByIndex(jsonResponse, index)
 
                 if (!audioUrl.isNullOrEmpty()) {
                     Log.e("Valid audio URL_${index}", "Valid audio URL_${index}")
@@ -258,7 +293,7 @@ class GenerateAudioViewModel : ViewModel() {
         }
 
         if (audioUrl.isNullOrEmpty()) {
-            triggerToast("Max retries reached_${index}. No audio URL found.")
+            triggerToast("No audio URL found.")
         }
     }
 
@@ -336,9 +371,8 @@ class GenerateAudioViewModel : ViewModel() {
         return null
     }
 
-
     private fun downloadAudio(fileUrl: String, index: Int = 0, title: String = "") {
-        statusText.postValue("Preparing_${index} to download audio file...")
+//        statusText.postValue("Preparing_${index} to download audio file...")
 
         Log.e("Prepare_${index} downloading", fileUrl)
 
@@ -361,7 +395,7 @@ class GenerateAudioViewModel : ViewModel() {
                     }
                     val file = File(musicFolder, fileName)
 
-                    triggerToast("Generating: $fileName")
+                    triggerToast("Downloading: $fileName")
                     totalGenerating += 1
                     if (totalGenerating == maxTrack) {
                         playButtonVisibility.postValue(View.VISIBLE)
@@ -375,27 +409,24 @@ class GenerateAudioViewModel : ViewModel() {
                     }
                     triggerToast("Completed: $fileName")
 
-                    val renamedFile = File(musicFolder, "${title} - v${index + 1}.mp3")
-                    file.renameTo(renamedFile)
-
                     // Update UI when download is done
                     withContext(Dispatchers.Main) {
                         totalDownloaded += 1
                         if (totalDownloaded == maxTrack) {
                             resetProgress()
                         }
-                        statusText.postValue("${totalDownloaded}/${maxTrack.toString()} files downloaded successfully: ${renamedFile.absolutePath}")
+                        statusText.postValue("${totalDownloaded}/${maxTrack.toString()} files downloaded successfully")
                     }
                 } else {
                     // Update UI when response is unsuccessful
                     resetProgress()
-                    statusText.postValue("Failed to download file_${index}: ${response.code}")
+                    statusText.postValue("Failed to download file: ${response.code}")
                 }
             } catch (e: IOException) {
                 // Handle failure to download the file
                 withContext(Dispatchers.Main) {
                     resetProgress()
-                    statusText.postValue("Failed to download file_${index}")
+                    triggerSnack("Error getting device data. Please restart your device")
                 }
                 Log.e("GenerateAudioFragment", "File_${index} download failed", e)
             }
