@@ -6,4 +6,12 @@
     </style>
 
     <style name="Theme.CS426MagicMusic" parent="Base.Theme.CS426MagicMusic" />
+
+    <!-- Launch Theme -->
+    <style name="Theme.CS426MagicMusic.Launcher">
+        <item name="android:windowBackground">@raw/splash3</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+
 </resources>

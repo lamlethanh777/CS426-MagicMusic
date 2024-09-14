@@ -45,6 +45,7 @@ class MusicPlayerService : LifecycleService() {
     val currentSongPositionLiveData: LiveData<Int> get() = musicPlayer.currentSongPositionLiveData
     val repeatModeLiveData: LiveData<Int> get() = musicPlayer.repeatModeLiveData
     val shuffleModeLiveData: LiveData<Boolean> get() = musicPlayer.shuffleModeLiveData
+    val alarmModeLiveData: LiveData<Boolean> get() = musicPlayer.shuffleModeLiveData
 
     inner class LocalBinder : Binder() {
         fun getService(): MusicPlayerService = this@MusicPlayerService

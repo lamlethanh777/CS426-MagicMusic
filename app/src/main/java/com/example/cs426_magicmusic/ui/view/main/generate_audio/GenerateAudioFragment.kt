@@ -18,6 +18,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.example.cs426_magicmusic.utils.LyricUtility
 import com.example.cs426_magicmusic.GenerateAudioViewModel
 import com.example.cs426_magicmusic.R
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -26,9 +27,8 @@ import java.io.File
 class GenerateAudioFragment : Fragment() {
 
     private lateinit var viewModel: GenerateAudioViewModel
-    private lateinit var generateButton: Button
-    private lateinit var getButton: Button
-    private lateinit var limitButton: Button
+    private lateinit var generateButton: ImageButton
+    private lateinit var getButton: ImageButton
     private lateinit var instrumentalSwitch: Switch
     private lateinit var lyricSwitch: Switch
     private lateinit var statusText: TextView
@@ -51,12 +51,13 @@ class GenerateAudioFragment : Fragment() {
 
         val urlPrefixArray = arrayOf(
             "https://magic-music-acc-0.vercel.app",
-            "https://magic-music-acc-4.vercel.app",
-            "https://magic-music-acc-3.vercel.app",
+            "https://magic-music-acc-1.vercel.app",
             "https://magic-music-acc-2.vercel.app",
-            "https://magic-music-acc-5.vercel.app",
-            "https://magic-music-acc-1.vercel.app"
+            "https://magic-music-acc-3.vercel.app",
+            "https://magic-music-acc-4.vercel.app",
+            "https://magic-music-acc-5.vercel.app"
         )
+        val urlArraySize = urlPrefixArray.size
     }
 
     override fun onCreateView(
@@ -77,7 +78,6 @@ class GenerateAudioFragment : Fragment() {
         getButton = view.findViewById(R.id.getButton)
         instrumentalSwitch = view.findViewById(R.id.instrumentalSwitch)
         lyricSwitch = view.findViewById(R.id.lyricSwitch)
-        limitButton = view.findViewById(R.id.limitButton)
         statusText = view.findViewById(R.id.statusText)
         progressBar = view.findViewById(R.id.progressBar)
         playButton = view.findViewById(R.id.playButton)
@@ -118,6 +118,7 @@ class GenerateAudioFragment : Fragment() {
             } else {
                 requireActivity().runOnUiThread {
                     Toast.makeText(context, "Give me some words!", Toast.LENGTH_SHORT).show()
+
                 }
             }
         }
@@ -128,6 +129,7 @@ class GenerateAudioFragment : Fragment() {
                 .setMessage("The UI will be refreshed, but the previous task is still being processed?")
                 .setPositiveButton("New") { dialog, which ->
                     viewModel.resetViewModelState()
+                    viewModel.increaseStartIndex(false)
                     val fragmentTransaction = parentFragmentManager.beginTransaction()
                     fragmentTransaction.replace(R.id.main_fragment, GenerateAudioFragment())
                     fragmentTransaction.commit()
@@ -145,23 +147,6 @@ class GenerateAudioFragment : Fragment() {
                 .setPositiveButton("Yes") { dialog, which ->
                     lifecycleScope.launch(Dispatchers.Main) {
                         viewModel.fetchHistoryRecords()
-                    }
-                }
-                .setNegativeButton("No") { dialog, which ->
-                    dialog.dismiss()
-                }
-                .show()
-        }
-
-        limitButton.setOnClickListener {
-            AlertDialog.Builder(requireContext())
-                .setTitle("Confirmation")
-                .setMessage("Check remain credits of all accounts. No credit loss")
-                .setPositiveButton("Yes") { dialog, which ->
-                    for (url in urlPrefixArray) {
-                        lifecycleScope.launch(Dispatchers.Main) {
-                            viewModel.checkLimit(url)
-                        }
                     }
                 }
                 .setNegativeButton("No") { dialog, which ->
@@ -188,6 +173,18 @@ class GenerateAudioFragment : Fragment() {
     }
 
     private fun setupObservers() {
+        viewModel.generateButtonVisibility.observe(viewLifecycleOwner) { visibility ->
+//            generateButton.visibility = visibility
+            if (visibility == View.GONE) {
+                generateButton.isEnabled = false
+                generateButton.alpha = 0.5f
+            }
+            else {
+                generateButton.isEnabled = true
+                generateButton.alpha = 1.0f
+            }
+        }
+
         viewModel.progressBarVisibility.observe(viewLifecycleOwner) { visibility ->
             progressBar.visibility = visibility
         }
@@ -212,6 +209,16 @@ class GenerateAudioFragment : Fragment() {
             if (!message.isNullOrEmpty())
                 requireActivity().runOnUiThread {
                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                }
+        }
+
+        viewModel.snackMessage.observe(viewLifecycleOwner) { message ->
+            if (!message.isNullOrEmpty())
+                requireActivity().runOnUiThread {
+                    view?.let { rootView ->
+                        Snackbar.make(rootView, message, Snackbar.LENGTH_INDEFINITE)
+                            .setAction("Close"){}.show()
+                    }
                 }
         }
     }
@@ -332,6 +339,8 @@ class GenerateAudioFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
+        viewModel.toastMessage.postValue("")
+        viewModel.snackMessage.postValue("")
         exoPlayer?.release()
         exoPlayer = null
     }
