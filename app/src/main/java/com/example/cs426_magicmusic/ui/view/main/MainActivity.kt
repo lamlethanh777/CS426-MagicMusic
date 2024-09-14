@@ -26,7 +26,7 @@ import com.example.cs426_magicmusic.data.repository.SongRepository
 import com.example.cs426_magicmusic.data.source.db.AppDatabase
 import com.example.cs426_magicmusic.data.source.db.synchronize.LocalDBSynchronizer
 import com.example.cs426_magicmusic.others.Constants.ACTION_RETURN_TO_SONG_PLAYER_ACTIVITY
-import com.example.cs426_magicmusic.service.musicplayer.MusicPlayerService
+import com.example.cs426_magicmusic.service.music_player.MusicPlayerService
 import com.example.cs426_magicmusic.ui.view.main.about.AboutFragment
 import com.example.cs426_magicmusic.ui.view.main.generate_audio.GenerateAudioFragment
 import com.example.cs426_magicmusic.ui.view.main.library.LibraryFragment

@@ -8,7 +8,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import com.example.cs426_magicmusic.data.entity.Song
-import com.example.cs426_magicmusic.service.musicplayer.MusicPlayerService
+import com.example.cs426_magicmusic.service.music_player.MusicPlayerService
 import com.example.cs426_magicmusic.ui.view.main.library.LibraryFragment
 import java.lang.ref.WeakReference
 

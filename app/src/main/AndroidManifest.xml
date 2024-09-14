@@ -46,14 +46,14 @@
         </activity>
 
         <service
-            android:name=".service.musicplayer.MusicPlayerService"
+            android:name=".service.music_player.MusicPlayerService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="mediaPlayback"
             android:stopWithTask="true" />
 
         <receiver
-            android:name=".service.musicplayer.MusicBroadcastReceiver"
+            android:name=".service.music_player.MusicBroadcastReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.example.cs426_magicmusic.ACTION_PLAY_PAUSE" />

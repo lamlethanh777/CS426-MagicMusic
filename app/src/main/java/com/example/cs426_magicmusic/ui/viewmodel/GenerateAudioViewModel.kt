@@ -92,7 +92,7 @@ class GenerateAudioViewModel : ViewModel() {
 
     init {
         resetViewModelState()
-//        increaseStartIndex(true)
+        increaseStartIndex(true)
     }
 
     // Function for POST requests

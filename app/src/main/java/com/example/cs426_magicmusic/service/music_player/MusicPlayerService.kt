@@ -1,4 +1,4 @@
-package com.example.cs426_magicmusic.service.musicplayer
+package com.example.cs426_magicmusic.service.music_player
 
 import android.app.NotificationChannel
 import android.app.NotificationManager

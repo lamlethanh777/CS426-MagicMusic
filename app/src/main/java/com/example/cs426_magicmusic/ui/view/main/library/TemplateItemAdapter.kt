@@ -109,7 +109,7 @@ abstract class TemplateItemAdapter<T>(
                 listener?.onItemLongClicked(item, position)
                 true
             }
-            _menuButton.setOnClickListener {
+            _menuButton?.setOnClickListener {
                 listener?.onItemMenuClicked(_menuButton, item, position)
             }
         }
