@@ -63,12 +63,4 @@
             tools:ignore="HardcodedText" />
     </LinearLayout>
 
-    <ImageButton
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:background="?android:attr/selectableItemBackgroundBorderless"
-        android:src="@drawable/ic_more_32"
-        app:layout_constraintTop_toTopOf="@id/item_song_cardview"
-        app:layout_constraintStart_toEndOf="@id/item_song_cardview"/>
-
 </androidx.constraintlayout.widget.ConstraintLayout>

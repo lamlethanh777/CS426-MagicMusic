@@ -5,9 +5,14 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.map
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import com.example.cs426_magicmusic.data.entity.Song
+import com.example.cs426_magicmusic.data.repository.PlaylistRepository
+import com.example.cs426_magicmusic.data.repository.SongRepository
 import com.example.cs426_magicmusic.others.Constants.PLAYER_REPEAT_MODE_NONE
 import com.example.cs426_magicmusic.others.Constants.PLAYER_SHUFFLE_MODE_OFF
 import com.example.cs426_magicmusic.others.Constants.NEXT_SONG
@@ -17,9 +22,13 @@ import com.example.cs426_magicmusic.utils.LyricUtility
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 
-class SongPlayerViewModel : ViewModel() {
+class SongPlayerViewModel(
+    private val playlistRepository: PlaylistRepository,
+    private val songRepository: SongRepository
+) : ViewModel() {
 
     private val _currentSong = MutableLiveData<Song>()
     val currentSong: LiveData<Song> = _currentSong
@@ -35,6 +44,8 @@ class SongPlayerViewModel : ViewModel() {
     val alarmMode: LiveData<Boolean> = _alarmMode
 
     private var alarmJob: Job? = null
+    private val _isFavorite = MutableLiveData<Boolean>(_currentSong.value?.isFavorite?:false)
+    val isFavorite: LiveData<Boolean> = _isFavorite
 
     private var isLyricLoaded = false
     private var lyricText = "No lyric available"
@@ -141,7 +152,17 @@ class SongPlayerViewModel : ViewModel() {
     }
 
     fun setIsFavorite() {
-        // Implement favorite functionality if needed
+        _currentSong.value!!.isFavorite = !(_currentSong.value!!.isFavorite)
+        _isFavorite.value = _currentSong.value!!.isFavorite
+        viewModelScope.launch {
+            val updatedSong = currentSong.value!!.copy(isFavorite = currentSong.value!!.isFavorite)
+            songRepository.updateSong(updatedSong)
+            if (_isFavorite.value == true) {
+                playlistRepository.addSongToFavoritePlaylist(currentSong.value!!)
+            } else {
+                playlistRepository.deleteSongFromFavoritePlaylist(currentSong.value!!)
+            }
+        }
     }
 
     fun playPreviousSong() {

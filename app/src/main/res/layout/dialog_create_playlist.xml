@@ -1,0 +1,47 @@
+<!-- res/layout/dialog_create_playlist.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Create New Playlist"
+        android:textSize="20sp"
+        android:textStyle="bold"/>
+
+    <EditText
+        android:id="@+id/playlist_name_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:layout_marginVertical="8dp"
+        android:hint="Playlist Name"
+        android:inputType="text"
+        android:padding="8dp"
+        android:background="@drawable/edittext_background"/>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right">
+        <Button
+            android:id="@+id/create_button"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:text="Create"
+            android:layout_marginEnd="8dp"
+            android:foreground="?attr/selectableItemBackgroundBorderless"
+            android:background="@drawable/button_background"/>
+
+        <Button
+            android:id="@+id/cancel_button"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:text="Cancel"
+            android:foreground="?attr/selectableItemBackgroundBorderless"
+            android:background="@drawable/button_background"/>
+    </LinearLayout>
+</LinearLayout>

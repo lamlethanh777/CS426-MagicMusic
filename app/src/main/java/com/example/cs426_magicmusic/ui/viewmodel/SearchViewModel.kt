@@ -25,6 +25,7 @@ class SearchViewModel(
 
     private val _substring = MutableLiveData("")
     val substring: LiveData<String> = _substring
+
     fun filterSongs(substring: String) {
         _substring.value = substring
         viewModelScope.launch {

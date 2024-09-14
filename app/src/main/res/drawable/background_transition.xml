@@ -1,0 +1,4 @@
+<transition xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/rounded_corners_idle" />
+    <item android:drawable="@drawable/rounded_corners_chosen" />
+</transition>
