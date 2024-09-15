@@ -7,15 +7,6 @@ import com.example.cs426_magicmusic.data.entity.Artist
 import com.example.cs426_magicmusic.data.entity.Song
 import kotlinx.parcelize.Parcelize
 
-//@Parcelize
-//@Entity(tableName = "artists_songs"
-//    , primaryKeys = ["artistId", "songId"]
-//)
-//data class ArtistSong(
-//    val artistId: Int,
-//    val songId: Int
-//) : Parcelable
-
 @Parcelize
 @Entity(tableName = "artists_songs",
         primaryKeys = ["artistName", "songPath"],

@@ -32,8 +32,4 @@ class ArtistRepository (private val appDatabase: AppDatabase) {
             }
         }
     }
-
-    suspend fun deleteAllArtists() {
-        appDatabase.artistDao().deleteAll()
-    }
 }

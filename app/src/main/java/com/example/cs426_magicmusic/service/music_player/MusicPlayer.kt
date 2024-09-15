@@ -1,12 +1,14 @@
 package com.example.cs426_magicmusic.service.music_player
 
 import android.util.Log
+import androidx.annotation.OptIn
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import com.abdelhakim.prosoundeq.ProSoundEQSettings
 import com.example.cs426_magicmusic.data.entity.Song
@@ -19,6 +21,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
+@OptIn(UnstableApi::class) // Unstable class because of ExoPlayer.audioSessionId
 class MusicPlayer(private val service: LifecycleService) {
     private val exoPlayer: ExoPlayer = ExoPlayer.Builder(service).build()
     private val _currentSongLiveData = MutableLiveData<Song>()
@@ -37,15 +40,14 @@ class MusicPlayer(private val service: LifecycleService) {
     init {
         exoPlayer.addListener(object : Player.Listener {
             override fun onPlaybackStateChanged(state: Int) {
-                if (state == Player.STATE_ENDED) {
-                    // Handle playback ended
-                }
-
                 if (state == Player.STATE_READY && exoPlayer.playWhenReady) {
                     // Initialize ProSoundEQ with the audio session ID
                     ProSoundEQSettings.init(exoPlayer.audioSessionId)
                     ProSoundEQSettings.setColor("#34ebb1")
-                    Log.d("MusicPlayer", "ProSoundEQ initialized with audio session ID: ${exoPlayer.audioSessionId}")
+                    Log.d(
+                        "MusicPlayer",
+                        "ProSoundEQ initialized with audio session ID: ${exoPlayer.audioSessionId}"
+                    )
                 }
             }
 

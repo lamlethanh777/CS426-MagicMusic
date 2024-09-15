@@ -33,11 +33,11 @@ class SongPlayerViewModel(
     val repeatMode: LiveData<Int> = _repeatMode
     private val _shuffleMode = MutableLiveData(PLAYER_SHUFFLE_MODE_OFF)
     val shuffleMode: LiveData<Boolean> = _shuffleMode
-    private val _alarmMode = MutableLiveData<Boolean>(false)
+    private val _alarmMode = MutableLiveData(false)
     val alarmMode: LiveData<Boolean> = _alarmMode
 
     private var alarmJob: Job? = null
-    private val _isFavorite = MutableLiveData<Boolean>(_currentSong.value?.isFavorite?:false)
+    private val _isFavorite = MutableLiveData(_currentSong.value?.isFavorite?:false)
     val isFavorite: LiveData<Boolean> = _isFavorite
 
     private var isLyricLoaded = false

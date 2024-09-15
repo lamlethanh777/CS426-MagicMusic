@@ -2,7 +2,11 @@ package com.example.cs426_magicmusic.utils
 
 import android.os.Environment
 import android.util.Log
+import com.example.cs426_magicmusic.others.Constants.DEFAULT_APPLICATION_METADATA_PATH
+import com.example.cs426_magicmusic.others.Constants.JSON_LYRIC_KEY
+import com.example.cs426_magicmusic.others.Constants.JSON_TITLE_KEY
 import com.example.cs426_magicmusic.others.Constants.STRING_UNKNOWN_LYRIC
+import com.example.cs426_magicmusic.others.Constants.STRING_UNKNOWN_TITLE
 import org.json.JSONObject
 import java.io.File
 
@@ -10,14 +14,15 @@ object LyricUtility {
     fun loadLyricFromJson(songName: String): String {
         val downloadsDir = File(
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-            "magicmusic/metadata"
+            DEFAULT_APPLICATION_METADATA_PATH
         )
         val files = downloadsDir.listFiles()
         var filePath: String? = null
 
         // Search for the correct JSON file in the directory based on the song name
         if (files != null && files.isNotEmpty()) {
-            filePath = files.find { it.nameWithoutExtension.equals(songName, ignoreCase = true) }?.toString()
+            filePath = files.find { it.nameWithoutExtension.equals(songName, ignoreCase = true) }
+                ?.toString()
         }
 
         if (filePath == null) {
@@ -33,15 +38,18 @@ object LyricUtility {
 
                 // Parse the JSON object and extract the lyric field
                 val jsonObject = JSONObject(jsonString)
-                val title = jsonObject.optString("title", "Unknown Title") // Extract "title" from JSON
-                val lyric = jsonObject.optString("lyric", STRING_UNKNOWN_LYRIC)
+                val title = jsonObject.optString(
+                    JSON_TITLE_KEY,
+                    STRING_UNKNOWN_TITLE
+                ) // Extract "title" from JSON
+                val lyric = jsonObject.optString(JSON_LYRIC_KEY, STRING_UNKNOWN_LYRIC)
 
                 // Format the lyric
                 val formattedLyric = lyric
                     .replace("\\n", System.lineSeparator())  // Replace \n with a new line
                     .replace("[", System.lineSeparator() + "[")  // Format for stanza/paragraphs
 
-                val returnContent = "$title${System.lineSeparator()}${formattedLyric ?: ""}"
+                val returnContent = "$title${System.lineSeparator()}${formattedLyric}"
 
                 return returnContent
             } else {

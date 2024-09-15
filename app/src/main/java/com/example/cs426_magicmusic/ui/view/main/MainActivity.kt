@@ -101,10 +101,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
     private fun initializeDatabase() {
         val appDatabase = AppDatabase.getDatabase(this)
-        var songRepository = SongRepository(appDatabase)
-        var albumRepository = AlbumRepository(appDatabase)
-        var artistRepository = ArtistRepository(appDatabase)
-        var playlistRepository = PlaylistRepository(appDatabase)
+        val songRepository = SongRepository(appDatabase)
+        val albumRepository = AlbumRepository(appDatabase)
+        val artistRepository = ArtistRepository(appDatabase)
+        val playlistRepository = PlaylistRepository(appDatabase)
         LocalDBSynchronizer.setupRepositories(
             albumRepository, artistRepository, songRepository, playlistRepository
         )

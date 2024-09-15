@@ -96,7 +96,7 @@ object LocalDBSynchronizer {
                                 ?: cursor.getString(albumIndex) ?: STRING_UNKNOWN_ALBUM
                         val duration =
                             retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                                ?.toLong() ?: cursor.getLong(durationIndex) ?: 0L
+                                ?.toLong() ?: cursor.getLong(durationIndex)
 
                         if (artistNames == STRING_UNKNOWN_ARTIST) {
                             artistNames = STRING_DEFAULT_ARTIST_NAME

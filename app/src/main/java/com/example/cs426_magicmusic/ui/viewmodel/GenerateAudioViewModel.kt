@@ -6,6 +6,8 @@ import android.view.View
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.cs426_magicmusic.others.Constants.DEFAULT_APPLICATION_AUDIO_PATH
+import com.example.cs426_magicmusic.others.Constants.DEFAULT_APPLICATION_METADATA_PATH
 import com.example.cs426_magicmusic.ui.view.main.generate_audio.GenerateAudioFragment.Companion.urlArraySize
 import com.example.cs426_magicmusic.ui.view.main.generate_audio.GenerateAudioFragment.Companion.urlPrefixArray
 import kotlinx.coroutines.Dispatchers
@@ -329,7 +331,7 @@ class GenerateAudioViewModel : ViewModel() {
 
                     // Creating the directory and file
                     val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                    val metadataFolder = File(downloadsDir, "magicmusic/metadata")
+                    val metadataFolder = File(downloadsDir, DEFAULT_APPLICATION_METADATA_PATH)
                     if (!metadataFolder.exists()) {
                         metadataFolder.mkdirs()  // Create the directory if it doesn't exist
                     }
@@ -388,7 +390,7 @@ class GenerateAudioViewModel : ViewModel() {
 //                    val fileName = "${title} - v${index+1} ~ loading...mp3"
                     val downloadsDir =
                         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                    val musicFolder = File(downloadsDir, "magicmusic/audio")
+                    val musicFolder = File(downloadsDir, DEFAULT_APPLICATION_AUDIO_PATH)
 
                     if (!musicFolder.exists()) {
                         musicFolder.mkdirs()  // Create the directory if it doesn't exist

@@ -8,6 +8,5 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 @Entity(tableName = "artists")
 data class Artist(
-//    @PrimaryKey(autoGenerate = true) val artistId: Long = 0,
     @PrimaryKey(autoGenerate = false) val artistName: String
 ) : Parcelable

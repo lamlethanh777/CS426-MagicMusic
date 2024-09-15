@@ -5,12 +5,12 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.cs426_magicmusic.data.entity.Album
-import com.example.cs426_magicmusic.data.entity.relation.albums_songs.AlbumSong
 import com.example.cs426_magicmusic.data.entity.Artist
-import com.example.cs426_magicmusic.data.entity.relation.artists_songs.ArtistSong
 import com.example.cs426_magicmusic.data.entity.Playlist
-import com.example.cs426_magicmusic.data.entity.relation.playlists_songs.PlaylistSong
 import com.example.cs426_magicmusic.data.entity.Song
+import com.example.cs426_magicmusic.data.entity.relation.albums_songs.AlbumSong
+import com.example.cs426_magicmusic.data.entity.relation.artists_songs.ArtistSong
+import com.example.cs426_magicmusic.data.entity.relation.playlists_songs.PlaylistSong
 import com.example.cs426_magicmusic.data.source.db.dao.AlbumDao
 import com.example.cs426_magicmusic.data.source.db.dao.AlbumSongDao
 import com.example.cs426_magicmusic.data.source.db.dao.ArtistDao

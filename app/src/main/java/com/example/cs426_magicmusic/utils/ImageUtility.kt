@@ -11,6 +11,7 @@ import android.widget.ImageView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.cs426_magicmusic.R
+import com.example.cs426_magicmusic.others.Constants.DEFAULT_APPLICATION_METADATA_PATH
 import com.example.cs426_magicmusic.others.Constants.STRING_UNKNOWN_IMAGE
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -60,24 +61,21 @@ object ImageUtility {
         )
     } catch (e: Exception) {
         Log.d("ImageUtility", "Exception occurred: ${e.message}")
-        BitmapFactory.decodeResource(context.resources, R.drawable.placeholder_default)?.also {
-            if (it == null) {
-                Log.e("ImageUtility", "Failed to load placeholder image")
-            }
-        }
+        BitmapFactory.decodeResource(context.resources, R.drawable.placeholder_default)
     }
 
     fun loadImageUrlFromJson(songName: String): String {
         val downloadsDir = File(
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-            "magicmusic/metadata"
+            DEFAULT_APPLICATION_METADATA_PATH
         )
         val files = downloadsDir.listFiles()
         var filePath: String? = null
 
         // Search for the correct JSON file in the directory based on the song name
         if (files != null && files.isNotEmpty()) {
-            filePath = files.find { it.nameWithoutExtension.equals(songName, ignoreCase = true) }?.toString()
+            filePath = files.find { it.nameWithoutExtension.equals(songName, ignoreCase = true) }
+                ?.toString()
         }
 
         if (filePath == null) {
@@ -125,11 +123,6 @@ object ImageUtility {
 
     suspend fun loadBitmapFromUrl(context: Context, songName: String): Bitmap? {
         val url = loadImageUrlFromJson(songName)
-//        return Glide.with(context)
-//                .asBitmap()
-//                .load(url)
-//                .submit().get()
-//        }
 
         return withContext(Dispatchers.IO) {
             try {

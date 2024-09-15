@@ -7,8 +7,8 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
-import com.example.cs426_magicmusic.data.entity.relation.artists_songs.ArtistSong
 import com.example.cs426_magicmusic.data.entity.Song
+import com.example.cs426_magicmusic.data.entity.relation.artists_songs.ArtistSong
 
 @Dao
 interface ArtistSongDao {

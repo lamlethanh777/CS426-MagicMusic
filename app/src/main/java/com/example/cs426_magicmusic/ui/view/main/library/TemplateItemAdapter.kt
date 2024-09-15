@@ -15,7 +15,7 @@ import com.example.cs426_magicmusic.utils.ImageUtility
 
 abstract class TemplateItemAdapter<T>(
     private val listenerManager: ListenerManager,
-    private val diffCallback: DiffUtil.ItemCallback<T>
+    diffCallback: DiffUtil.ItemCallback<T>
 ) : RecyclerView.Adapter<TemplateItemAdapter<T>.TemplateViewHolder>() {
 
     enum class LayoutType {

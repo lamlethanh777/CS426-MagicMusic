@@ -45,7 +45,7 @@ class SearchFragment : Fragment() {
         )
 
         val factory = GenericViewModelFactory(SearchViewModel::class.java) {
-            SearchViewModel(songRepository, albumRepository, artistRepository, playlistRepository)
+            SearchViewModel(songRepository)
         }
         searchViewModel = ViewModelProvider(this, factory)[SearchViewModel::class.java]
     }
@@ -66,6 +66,7 @@ class SearchFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         searchView = view.findViewById(R.id.search_view)
+
         recyclerView = view.findViewById(R.id.search_results)
 
         searchedSongAdapter = SearchedSongAdapter(::onClickSongItem)

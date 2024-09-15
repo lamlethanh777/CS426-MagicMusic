@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import com.example.cs426_magicmusic.R
+import com.example.cs426_magicmusic.others.Constants.BUNDLE_KEY_LYRIC
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 class LyricBottomSheetFragment : BottomSheetDialogFragment() {
@@ -23,7 +24,7 @@ class LyricBottomSheetFragment : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        arguments?.getString("lyrics")?.let {
+        arguments?.getString(BUNDLE_KEY_LYRIC)?.let {
             lyricTextView.text = it
         }
     }
@@ -32,7 +33,7 @@ class LyricBottomSheetFragment : BottomSheetDialogFragment() {
         fun newInstance(lyrics: String): LyricBottomSheetFragment {
             val fragment = LyricBottomSheetFragment()
             val args = Bundle()
-            args.putString("lyrics", lyrics)
+            args.putString(BUNDLE_KEY_LYRIC, lyrics)
             fragment.arguments = args
             return fragment
         }

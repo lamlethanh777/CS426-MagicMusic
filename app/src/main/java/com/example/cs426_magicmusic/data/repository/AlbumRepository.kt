@@ -36,8 +36,4 @@ class AlbumRepository (private val appDatabase: AppDatabase) {
             }
         }
     }
-
-    suspend fun deleteAllAlbums() {
-        appDatabase.albumDao().deleteAll()
-    }
 }

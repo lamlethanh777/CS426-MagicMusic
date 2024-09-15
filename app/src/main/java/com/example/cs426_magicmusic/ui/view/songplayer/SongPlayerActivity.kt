@@ -197,8 +197,7 @@ class SongPlayerActivity : AppCompatActivity() {
         alarmOffButton.setOnClickListener {
             if (songPlayerViewModel.alarmMode.value == false) {
                 showTimePickerDialog()
-            }
-            else {
+            } else {
                 songPlayerViewModel.setAlarmMode(0) // turn off alarmMode
             }
         }
@@ -389,26 +388,25 @@ class SongPlayerActivity : AppCompatActivity() {
     private fun subscribeToAlarmOffLiveData() {
         songPlayerViewModel.alarmMode.observe(this@SongPlayerActivity) { alarmMode ->
             when (alarmMode) {
-                false -> alarmOffButton.alpha= 0.4f
-                true -> alarmOffButton.alpha= 1.0f
+                false -> alarmOffButton.alpha = 0.4f
+                true -> alarmOffButton.alpha = 1.0f
             }
         }
     }
 
     private fun showTimePickerDialog() {
         val currentTime = Calendar.getInstance()
-        val hour = currentTime.get(Calendar.HOUR_OF_DAY)
-        val minute = currentTime.get(Calendar.MINUTE)
 
         val timePickerDialog = TimePickerDialog(
             this,
             { _, selectedHour, selectedMinute ->
                 // Calculate duration in milliseconds
-                val durationInMillis = (selectedHour * 60 * 60 * 1000) + (selectedMinute * 60 * 1000)
+                val durationInMillis =
+                    (selectedHour * 60 * 60 * 1000) + (selectedMinute * 60 * 1000)
                 songPlayerViewModel.setAlarmMode(durationInMillis)
             },
-            0,
-            0,
+            currentTime.get(Calendar.HOUR_OF_DAY),
+            currentTime.get(Calendar.MINUTE),
             true // Set is24HourView to true to use the 24-hour clock
         )
 

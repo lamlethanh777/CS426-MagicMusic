@@ -19,17 +19,9 @@ object Constants {
          */
         const val ACTION_PLAY_NEW_SONG = "ACTION_PLAY_NEW_SONG"
         const val ACTION_RETURN_TO_SONG_PLAYER_ACTIVITY = "ACTION_RETURN_TO_SONG_PLAYER_ACTIVITY"
-
-        const val NEXT_SONG = 1
-        const val PREVIOUS_SONG = -1
-        const val CURRENT_SONG = 0
-
         const val ACTION_PLAY_PAUSE = "ACTION_PLAY_PAUSE"
-        const val ACTION_PLAY = "ACTION_PLAY"
-        const val ACTION_PAUSE = "ACTION_PAUSE"
         const val ACTION_SKIP_NEXT = "ACTION_SKIP_NEXT"
         const val ACTION_SKIP_PREVIOUS = "ACTION_SKIP_PREVIOUS"
-        const val ACTION_STOP = "ACTION_STOP"
 
         const val PLAYER_CHANNEL_ID = "music_channel"
         const val PLAYER_CHANNEL_NAME = "Music Channel"
@@ -45,6 +37,8 @@ object Constants {
         const val INTENT_KEY_NEW_SONG_LIST = "NEW_SONG_LIST"
         const val INTENT_KEY_SONG_INDEX = "SONG_INDEX"
 
+        const val BUNDLE_KEY_LYRIC = "LYRIC"
+
         const val STRING_UNKNOWN_ARTIST = "Unknown Artist"
         const val STRING_UNKNOWN_ALBUM = "Unknown Album"
         const val STRING_UNKNOWN_TITLE = "Unknown Title"
@@ -57,18 +51,23 @@ object Constants {
         const val PLAYER_REPEAT_MODE_ONE = 1
         const val PLAYER_REPEAT_MODE_ALL = 2
 
-        const val NUMBER_OF_SHUFFLE_MODE = 2
         const val PLAYER_SHUFFLE_MODE_OFF = false
         const val PLAYER_SHUFFLE_MODE_ON = true
-
-        const val NUMBER_OF_PLAY_DIRECTION = 2
-        const val PLAY_DIRECTION_NEXT = 1
-        const val PLAY_DIRECTION_PREVIOUS = -1
-        const val PLAY_DIRECTION_NONE = 0
 
         const val PLAYER_DELAY_BETWEEN_SONGS = 1000L
         const val STRING_UNKNOWN_LYRIC = "No lyric available"
         const val STRING_UNKNOWN_IMAGE = "No image available"
 
         const val FAVORITE_PLAYLIST_NAME = "Favorite"
+        const val DEFAULT_APPLICATION_AUDIO_PATH = "magicmusic/audio"
+        const val DEFAULT_APPLICATION_METADATA_PATH = "magicmusic/metadata"
+        const val JSON_TITLE_KEY = "title"
+        const val JSON_LYRIC_KEY = "lyric"
+
+        const val STRING_ALL_SONGS = "All Songs"
+        const val STRING_ALL_ALBUMS = "All Albums"
+        const val STRING_ALL_ARTISTS = "All Artists"
+        const val STRING_ALL_PLAYLISTS = "All Playlists"
+
+        const val DURATION_SPLASH_SCREEN = 1000L
 }
