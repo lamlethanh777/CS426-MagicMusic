@@ -7,15 +7,17 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.recyclerview.widget.AsyncDifferConfig
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListUpdateCallback
 import androidx.recyclerview.widget.RecyclerView
 import com.example.cs426_magicmusic.R
 import com.example.cs426_magicmusic.utils.ImageUtility
 
+@SuppressLint("NotifyDataSetChanged")
 abstract class TemplateItemAdapter<T>(
-    private val listenerManager: ListenerManager,
-    diffCallback: DiffUtil.ItemCallback<T>
+    private val listenerManager: ListenerManager
 ) : RecyclerView.Adapter<TemplateItemAdapter<T>.TemplateViewHolder>() {
 
     enum class LayoutType {
@@ -25,17 +27,19 @@ abstract class TemplateItemAdapter<T>(
     private var _layoutType: LayoutType = LayoutType.LIST
     var layoutType: LayoutType
         get() = _layoutType
-        @SuppressLint("NotifyDataSetChanged")
         set(value) {
             _layoutType = value
             notifyDataSetChanged()
         }
 
-    private val differ: AsyncListDiffer<T> = AsyncListDiffer(this, diffCallback)
+    private var _itemList: List<T> = listOf()
 
     var itemList: List<T>
-        get() = differ.currentList
-        set(value) = differ.submitList(value)
+        get() = _itemList
+        set(value) {
+            _itemList = value
+            notifyDataSetChanged()
+        }
 
     override fun getItemCount(): Int {
         return itemList.size

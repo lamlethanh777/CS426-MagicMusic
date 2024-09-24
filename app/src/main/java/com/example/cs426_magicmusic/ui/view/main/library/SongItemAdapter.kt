@@ -6,16 +6,7 @@ import com.example.cs426_magicmusic.data.entity.Song
 class SongItemAdapter(
     listenerManager: ListenerManager
 ) : TemplateItemAdapter<Song>(
-    listenerManager,
-    object : DiffUtil.ItemCallback<Song>() {
-        override fun areItemsTheSame(oldItem: Song, newItem: Song): Boolean {
-            return oldItem.path == newItem.path
-        }
-
-        override fun areContentsTheSame(oldItem: Song, newItem: Song): Boolean {
-            return oldItem == newItem
-        }
-    }
+    listenerManager
 ) {
     override fun getTitle(item: Any?): String {
         return (item as Song).title
