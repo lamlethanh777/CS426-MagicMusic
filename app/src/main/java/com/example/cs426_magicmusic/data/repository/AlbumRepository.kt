@@ -36,4 +36,14 @@ class AlbumRepository (private val appDatabase: AppDatabase) {
             }
         }
     }
+
+    suspend fun addSongsToAlbum(existingAlbum: Album, newSongsForAlbum: List<Song>) {
+        // For each new song, insert the relationship between the existing album and the song
+        for (song in newSongsForAlbum) {
+            val albumSong = AlbumSong(existingAlbum.albumName, song.path)
+
+            // Insert the new album-song relationship into the database
+            appDatabase.albumSongDao().insert(albumSong)
+        }
+    }
 }

@@ -32,4 +32,13 @@ class ArtistRepository (private val appDatabase: AppDatabase) {
             }
         }
     }
+
+    suspend fun addSongsToArtist(existingArtist: Artist, newSongsForArtist: List<Song>) {
+        for (song in newSongsForArtist) {
+            val artistSong = ArtistSong(existingArtist.artistName, song.path)
+            // Insert the new artist-song relationship into the database
+            appDatabase.artistSongDao().insert(artistSong)
+        }
+    }
+
 }
