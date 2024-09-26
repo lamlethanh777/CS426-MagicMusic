@@ -6,7 +6,7 @@ import com.example.cs426_magicmusic.data.entity.relation.playlists_songs.Playlis
 import com.example.cs426_magicmusic.data.source.db.AppDatabase
 import com.example.cs426_magicmusic.others.Constants.FAVORITE_PLAYLIST_NAME
 
-class PlaylistRepository (private val appDatabase: AppDatabase) {
+class PlaylistRepository(private val appDatabase: AppDatabase) {
     suspend fun fetchPlaylists(): List<Playlist> {
         return appDatabase.playlistDao().fetchPlaylists()
     }
@@ -32,7 +32,8 @@ class PlaylistRepository (private val appDatabase: AppDatabase) {
     }
 
     suspend fun fetchSongsInPlaylistOrderByArtistNames(playlist: Playlist): List<Song> {
-        return appDatabase.playlistSongDao().fetchSongsInPlaylistOrderByArtistNames(playlist.playlistName)
+        return appDatabase.playlistSongDao()
+            .fetchSongsInPlaylistOrderByArtistNames(playlist.playlistName)
     }
 
     suspend fun insertSongIntoPlaylist(playlist: Playlist, song: Song) {
@@ -49,5 +50,14 @@ class PlaylistRepository (private val appDatabase: AppDatabase) {
 
     suspend fun deleteSongFromFavoritePlaylist(song: Song) {
         appDatabase.playlistSongDao().delete(PlaylistSong(FAVORITE_PLAYLIST_NAME, song.path))
+    }
+
+    suspend fun isSongInFavoritePlaylist(it: Song): Boolean {
+        val result = appDatabase.playlistSongDao().isSongInPlaylist(FAVORITE_PLAYLIST_NAME, it.path)
+        return if (result == null) {
+            false
+        } else {
+            result > 0
+        }
     }
 }

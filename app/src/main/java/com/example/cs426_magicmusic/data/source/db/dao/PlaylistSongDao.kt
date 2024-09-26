@@ -55,4 +55,10 @@ interface PlaylistSongDao {
                 " ORDER BY songs.artistNames"
     )
     suspend fun fetchSongsInPlaylistOrderByArtistNames(playlistName: String): List<Song>
+
+    @Query(
+        "SELECT COUNT(*) FROM playlists_songs" +
+                " WHERE playlists_songs.playlistName = :favoritePlaylistName AND songPath = :path"
+    )
+    suspend fun isSongInPlaylist(favoritePlaylistName: String, path: String): Int?
 }

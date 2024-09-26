@@ -22,7 +22,7 @@ import com.example.cs426_magicmusic.data.source.db.synchronize.LocalDBSynchroniz
 import com.example.cs426_magicmusic.others.Constants.ACTION_PLAY_NEW_SONG
 import com.example.cs426_magicmusic.others.Constants.INTENT_KEY_NEW_SONG_LIST
 import com.example.cs426_magicmusic.others.Constants.INTENT_KEY_SONG_INDEX
-import com.example.cs426_magicmusic.ui.view.songplayer.SongPlayerActivity
+import com.example.cs426_magicmusic.ui.view.song_player.SongPlayerActivity
 import com.example.cs426_magicmusic.ui.viewmodel.GenericViewModelFactory
 import com.example.cs426_magicmusic.ui.viewmodel.SearchViewModel
 

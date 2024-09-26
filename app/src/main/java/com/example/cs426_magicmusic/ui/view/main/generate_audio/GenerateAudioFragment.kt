@@ -16,7 +16,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.example.cs426_magicmusic.utils.LyricUtility
-import com.example.cs426_magicmusic.GenerateAudioViewModel
+import com.example.cs426_magicmusic.ui.viewmodel.GenerateAudioViewModel
 import com.example.cs426_magicmusic.R
 import com.example.cs426_magicmusic.others.Constants.DEFAULT_APPLICATION_AUDIO_PATH
 import com.google.android.material.snackbar.Snackbar

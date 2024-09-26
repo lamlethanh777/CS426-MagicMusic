@@ -31,7 +31,7 @@ import com.example.cs426_magicmusic.ui.view.main.about.AboutFragment
 import com.example.cs426_magicmusic.ui.view.main.generate_audio.GenerateAudioFragment
 import com.example.cs426_magicmusic.ui.view.main.library.LibraryFragment
 import com.example.cs426_magicmusic.ui.view.main.search.SearchFragment
-import com.example.cs426_magicmusic.ui.view.songplayer.SongPlayerActivity
+import com.example.cs426_magicmusic.ui.view.song_player.SongPlayerActivity
 import com.example.cs426_magicmusic.ui.viewmodel.MainViewModel
 import com.example.cs426_magicmusic.utils.ImageUtility
 import com.example.cs426_magicmusic.utils.PermissionUtility

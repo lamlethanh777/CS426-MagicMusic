@@ -1,6 +1,5 @@
 package com.example.cs426_magicmusic.ui.view.main.library
 
-import androidx.recyclerview.widget.DiffUtil
 import com.example.cs426_magicmusic.data.entity.Playlist
 
 class PlaylistItemAdapter(

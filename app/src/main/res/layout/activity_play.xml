@@ -5,7 +5,7 @@
     android:id="@+id/play_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.view.songplayer.SongPlayerActivity">
+    tools:context=".ui.view.song_player.SongPlayerActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"

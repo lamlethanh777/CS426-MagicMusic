@@ -39,7 +39,7 @@ import com.example.cs426_magicmusic.others.Constants.STRING_ALL_ALBUMS
 import com.example.cs426_magicmusic.others.Constants.STRING_ALL_ARTISTS
 import com.example.cs426_magicmusic.others.Constants.STRING_ALL_PLAYLISTS
 import com.example.cs426_magicmusic.others.Constants.STRING_ALL_SONGS
-import com.example.cs426_magicmusic.ui.view.songplayer.SongPlayerActivity
+import com.example.cs426_magicmusic.ui.view.song_player.SongPlayerActivity
 import com.example.cs426_magicmusic.ui.viewmodel.GenericViewModelFactory
 import com.example.cs426_magicmusic.ui.viewmodel.LibraryViewModel
 import kotlinx.coroutines.launch

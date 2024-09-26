@@ -1,4 +1,4 @@
-package com.example.cs426_magicmusic
+package com.example.cs426_magicmusic.ui.viewmodel
 
 import android.os.Environment
 import android.util.Log
@@ -42,15 +42,15 @@ class GenerateAudioViewModel : ViewModel() {
     val playButtonVisibility = MutableLiveData<Int>()
     val swapButtonVisibility = MutableLiveData<Int>()
     val progressBarVisibility = MutableLiveData<Int>()
-    val statusTextVisibility = MutableLiveData<Int>()
+    private val statusTextVisibility = MutableLiveData<Int>()
     val toastMessage = MutableLiveData<String>()
     val snackMessage = MutableLiveData<String>()
     val generateButtonVisibility = MutableLiveData<Int>()
 
     // Input field state
 
-    var totalDownloaded: Int = 0 // Number of audios completely downloaded
-    var totalGenerating: Int = 0 // Number of audios successfully posted
+    private var totalDownloaded: Int = 0 // Number of audios completely downloaded
+    private var totalGenerating: Int = 0 // Number of audios successfully posted
     private var urlArrayStartIndex: Int = 0 // Start index of urlPrefixArray
 
     private var progressJob: Job? = null
@@ -148,7 +148,7 @@ class GenerateAudioViewModel : ViewModel() {
         }
     }
 
-    suspend fun checkLimit(urlPrefix: String): Boolean {
+    private suspend fun checkLimit(urlPrefix: String): Boolean {
         val url = "$urlPrefix/api/get_limit"
         val response = makeGetRequest(url)
 
@@ -215,8 +215,8 @@ class GenerateAudioViewModel : ViewModel() {
         }
     }
 
-    suspend fun fetchHistoryRecords(_urlPrefix: String = "") {
-        var urlPrefix = _urlPrefix
+    suspend fun fetchHistoryRecords(urlPrefix: String = "") {
+        var prefix = urlPrefix
 
         // Loop through the URL prefix array to find a valid one
         for (i in 0 until urlArraySize) {
@@ -226,23 +226,23 @@ class GenerateAudioViewModel : ViewModel() {
 
             // Call your check function
             if (checkLimit(url)) {
-                urlPrefix = url
+                prefix = url
                 break
             }
         }
 
         // Proceed only if a valid URL prefix is found
-        if (urlPrefix.isNotEmpty()) {
+        if (prefix.isNotEmpty()) {
             resetProgress()
             updateProgress()
             totalDownloaded = 0
             totalGenerating = 0
             val job0 = viewModelScope.async(Dispatchers.IO) {
-                fetchHistoryRecordsByIndex(urlPrefix, 0)
+                fetchHistoryRecordsByIndex(prefix, 0)
             }
 
             val job1 = viewModelScope.async(Dispatchers.IO) {
-                fetchHistoryRecordsByIndex(urlPrefix, 1)
+                fetchHistoryRecordsByIndex(prefix, 1)
             }
         } else {
             println("No available tokens")
@@ -255,7 +255,7 @@ class GenerateAudioViewModel : ViewModel() {
         var audioUrl: String? = null
         var lyricUrl: String?
         var title: String?
-        var maxAttempts = 100  // Maximum number of retries to avoid infinite looping
+        val maxAttempts = 100  // Maximum number of retries to avoid infinite looping
         var attempts = 0
 
         println("fetchHistoryRecordsByIndex $index")
@@ -386,7 +386,7 @@ class GenerateAudioViewModel : ViewModel() {
                 val response =
                     client.newCall(request).execute()  // Synchronous call in background thread
                 if (response.isSuccessful) {
-                    val fileName = "${title} - v${index + 1}.mp3"
+                    val fileName = "$title - v${index + 1}.mp3"
 //                    val fileName = "${title} - v${index+1} ~ loading...mp3"
                     val downloadsDir =
                         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
@@ -417,7 +417,7 @@ class GenerateAudioViewModel : ViewModel() {
                         if (totalDownloaded == maxTrack) {
                             resetProgress()
                         }
-                        statusText.postValue("${totalDownloaded}/${maxTrack.toString()} files downloaded successfully")
+                        statusText.postValue("${totalDownloaded}/${maxTrack} files downloaded successfully")
                     }
                 } else {
                     // Update UI when response is unsuccessful
@@ -435,7 +435,7 @@ class GenerateAudioViewModel : ViewModel() {
         }
     }
 
-    fun updateProgress() {
+    private fun updateProgress() {
         progressJob = viewModelScope.launch(Dispatchers.Main) {
             progressBarVisibility.postValue(View.VISIBLE)
             while (progress.value!! < 100) {
@@ -450,7 +450,7 @@ class GenerateAudioViewModel : ViewModel() {
         }
     }
 
-    fun resetProgress() {
+    private fun resetProgress() {
         progressBarVisibility.postValue(View.GONE)
         progressJob?.cancel()
         progress.value = 0
