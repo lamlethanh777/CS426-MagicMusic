@@ -16,9 +16,13 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.example.cs426_magicmusic.utils.LyricUtility
-import com.example.cs426_magicmusic.GenerateAudioViewModel
+import com.example.cs426_magicmusic.ui.viewmodel.GenerateAudioViewModel
 import com.example.cs426_magicmusic.R
+import com.example.cs426_magicmusic.others.Constants.DEFAULT_APPLICATION_AUDIO_PATH
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.switchmaterial.SwitchMaterial
+import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -29,21 +33,21 @@ class GenerateAudioFragment : Fragment() {
     private lateinit var viewModel: GenerateAudioViewModel
     private lateinit var generateButton: ImageButton
     private lateinit var getButton: ImageButton
-    private lateinit var instrumentalSwitch: Switch
-    private lateinit var lyricSwitch: Switch
+    private lateinit var instrumentalSwitch: SwitchMaterial
+    private lateinit var lyricSwitch: SwitchMaterial
     private lateinit var statusText: TextView
-    private lateinit var progressBar: ProgressBar
+    private lateinit var progressBar: LinearProgressIndicator
     private lateinit var newButton: Button
     private lateinit var playButton: ImageButton
     private lateinit var swapButton: ImageButton
     private lateinit var seekBar: SeekBar
-    private lateinit var inputText: EditText
+    private lateinit var inputText: TextInputEditText
     private lateinit var lyricTextView: TextView
 
     private var playSongJob: Job? = null
     private var exoPlayer: ExoPlayer? = null
     private var audioFileIndex: Int = 0
-    private var is_instrumental: Boolean = false
+    private var isInstrumental: Boolean = false
 
     companion object {
         @JvmStatic
@@ -70,7 +74,7 @@ class GenerateAudioFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel = ViewModelProvider(requireActivity()).get(GenerateAudioViewModel::class.java)
+        viewModel = ViewModelProvider(requireActivity())[GenerateAudioViewModel::class.java]
 
         inputText = view.findViewById(R.id.inputText)
         generateButton = view.findViewById(R.id.generateButton)
@@ -85,7 +89,7 @@ class GenerateAudioFragment : Fragment() {
         seekBar = view.findViewById(R.id.seekBar)
         lyricTextView = view.findViewById(R.id.lyricTextView)
 
-        println("userin ${viewModel.userInputText.value}")
+        println("user in ${viewModel.userInputText.value}")
         inputText.setText(viewModel.userInputText.value)
 
         inputText.addTextChangedListener(object : TextWatcher {
@@ -106,12 +110,12 @@ class GenerateAudioFragment : Fragment() {
                 AlertDialog.Builder(requireContext())
                     .setTitle("Confirmation")
                     .setMessage("This action costs 10 credits to generate 2 songs. Continue?")
-                    .setPositiveButton("Let's go") { dialog, which ->
+                    .setPositiveButton("Let's go") { _, _ ->
                         lifecycleScope.launch(Dispatchers.Main) {
-                            viewModel.generateMusic(text, is_instrumental)
+                            viewModel.generateMusic(text, isInstrumental)
                         }
                     }
-                    .setNegativeButton("Cancel") { dialog, which ->
+                    .setNegativeButton("Cancel") { dialog, _ ->
                         dialog.dismiss()
                     }
                     .show()
@@ -127,14 +131,14 @@ class GenerateAudioFragment : Fragment() {
             AlertDialog.Builder(requireContext())
                 .setTitle("Confirmation")
                 .setMessage("The UI will be refreshed, but the previous task is still being processed?")
-                .setPositiveButton("New") { dialog, which ->
+                .setPositiveButton("New") { _, _ ->
                     viewModel.resetViewModelState()
                     viewModel.increaseStartIndex(false)
                     val fragmentTransaction = parentFragmentManager.beginTransaction()
                     fragmentTransaction.replace(R.id.main_fragment, GenerateAudioFragment())
                     fragmentTransaction.commit()
                 }
-                .setNegativeButton("Wait") { dialog, which ->
+                .setNegativeButton("Wait") { dialog, _ ->
                     dialog.dismiss()
                 }
                 .show()
@@ -144,12 +148,12 @@ class GenerateAudioFragment : Fragment() {
             AlertDialog.Builder(requireContext())
                 .setTitle("Confirmation")
                 .setMessage("Download 2 recent tracks")
-                .setPositiveButton("Yes") { dialog, which ->
+                .setPositiveButton("Yes") { _, _ ->
                     lifecycleScope.launch(Dispatchers.Main) {
                         viewModel.fetchHistoryRecords()
                     }
                 }
-                .setNegativeButton("No") { dialog, which ->
+                .setNegativeButton("No") { dialog, _ ->
                     dialog.dismiss()
                 }
                 .show()
@@ -164,7 +168,7 @@ class GenerateAudioFragment : Fragment() {
         }
 
         instrumentalSwitch.setOnCheckedChangeListener { _, isChecked ->
-            is_instrumental = isChecked
+            isInstrumental = isChecked
         }
 
         lyricSwitch.setOnCheckedChangeListener { _, isChecked ->
@@ -244,13 +248,13 @@ class GenerateAudioFragment : Fragment() {
             if (exoPlayer == null) {
                 exoPlayer = ExoPlayer.Builder(requireContext()).build()
             }
-            val downloadsDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "magicmusic/audio")
+            val downloadsDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), DEFAULT_APPLICATION_AUDIO_PATH)
             val files = downloadsDir.listFiles()
 
             if (files != null && files.isNotEmpty()) {
                 val sizeDir = files.size
                 val filePath = files.getOrNull(sizeDir - audioFileIndex - 1)?.toString()
-                viewModel.statusText.postValue("${File(filePath).name}")
+                viewModel.statusText.postValue(File(filePath).name)
                 loadLyric(File(filePath).nameWithoutExtension)
 
                 filePath?.let {

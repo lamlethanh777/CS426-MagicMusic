@@ -1,15 +1,18 @@
 package com.example.cs426_magicmusic.service.music_player
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.os.Binder
 import android.os.IBinder
 import android.util.Log
 import android.widget.RemoteViews
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -57,6 +60,7 @@ class MusicPlayerService : LifecycleService() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        super.onStartCommand(intent, flags, startId)
         return START_STICKY
     }
 
@@ -229,7 +233,17 @@ class MusicPlayerService : LifecycleService() {
             )
         }
 
-        notificationManager.notify(PLAYER_NOTIFICATION_ID, notificationBuilder.build())
+        notifyChangeInNotification(notificationManager)
+    }
+
+    private fun notifyChangeInNotification(notificationManager: NotificationManagerCompat) {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            notificationManager.notify(PLAYER_NOTIFICATION_ID, notificationBuilder.build())
+        }
     }
 
     private fun updatePlayPauseButtonOfNotification(isPlay: Boolean) {
@@ -245,6 +259,6 @@ class MusicPlayerService : LifecycleService() {
             )
         }
 
-        notificationManager.notify(PLAYER_NOTIFICATION_ID, notificationBuilder.build())
+        notifyChangeInNotification(notificationManager)
     }
 }

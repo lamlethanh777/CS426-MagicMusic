@@ -45,7 +45,6 @@ class LibraryViewModel(
     val filteredSongs: LiveData<List<Song>> = _filteredSongs
 
     private val _substring = MutableLiveData("")
-    val substring: LiveData<String> = _substring
 
     fun filterSongs(substring: String) {
         _substring.value = substring
@@ -82,27 +81,6 @@ class LibraryViewModel(
     fun fetchSongsOrderByArtistNames() {
         viewModelScope.launch {
             _songs.value = songRepository.fetchSongsOrderByArtistNames()
-        }
-    }
-
-    fun updateSong(song: Song) {
-        viewModelScope.launch {
-            songRepository.upsertSong(song)
-            _songs.value = songRepository.fetchSongs()
-        }
-    }
-
-    fun addSong(song: Song) {
-        viewModelScope.launch {
-            songRepository.upsertSong(song)
-            _songs.value = songRepository.fetchSongs()
-        }
-    }
-
-    fun deleteSong(song: Song) {
-        viewModelScope.launch {
-            songRepository.deleteSong(song)
-            _songs.value = songRepository.fetchSongs()
         }
     }
 
@@ -193,13 +171,6 @@ class LibraryViewModel(
     fun addNewPlaylist(playlistName: String) {
         viewModelScope.launch {
             playlistRepository.insertNewPlaylist(Playlist(playlistName = playlistName))
-            _playlists.value = playlistRepository.fetchPlaylists()
-        }
-    }
-
-    fun addSongToPlaylist(playlist: Playlist, song: Song) {
-        viewModelScope.launch {
-            playlistRepository.insertSongIntoPlaylist(playlist, song)
             _playlists.value = playlistRepository.fetchPlaylists()
         }
     }

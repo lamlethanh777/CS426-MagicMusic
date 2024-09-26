@@ -31,7 +31,7 @@ import com.example.cs426_magicmusic.ui.view.main.about.AboutFragment
 import com.example.cs426_magicmusic.ui.view.main.generate_audio.GenerateAudioFragment
 import com.example.cs426_magicmusic.ui.view.main.library.LibraryFragment
 import com.example.cs426_magicmusic.ui.view.main.search.SearchFragment
-import com.example.cs426_magicmusic.ui.view.songplayer.SongPlayerActivity
+import com.example.cs426_magicmusic.ui.view.song_player.SongPlayerActivity
 import com.example.cs426_magicmusic.ui.viewmodel.MainViewModel
 import com.example.cs426_magicmusic.utils.ImageUtility
 import com.example.cs426_magicmusic.utils.PermissionUtility
@@ -101,10 +101,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
     private fun initializeDatabase() {
         val appDatabase = AppDatabase.getDatabase(this)
-        var songRepository = SongRepository(appDatabase)
-        var albumRepository = AlbumRepository(appDatabase)
-        var artistRepository = ArtistRepository(appDatabase)
-        var playlistRepository = PlaylistRepository(appDatabase)
+        val songRepository = SongRepository(appDatabase)
+        val albumRepository = AlbumRepository(appDatabase)
+        val artistRepository = ArtistRepository(appDatabase)
+        val playlistRepository = PlaylistRepository(appDatabase)
         LocalDBSynchronizer.setupRepositories(
             albumRepository, artistRepository, songRepository, playlistRepository
         )

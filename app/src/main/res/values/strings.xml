@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">CS426-MagicMusic</string>
+    <string name="app_name">MagicMusic</string>
 
     <string-array name="search_options">
         <item>Song</item>

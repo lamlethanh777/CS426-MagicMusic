@@ -19,8 +19,7 @@ import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 
 class SongPlayerViewModel(
-    private val playlistRepository: PlaylistRepository,
-    private val songRepository: SongRepository
+    private val playlistRepository: PlaylistRepository
 ) : ViewModel() {
 
     private val _currentSong = MutableLiveData<Song>()
@@ -33,13 +32,12 @@ class SongPlayerViewModel(
     val repeatMode: LiveData<Int> = _repeatMode
     private val _shuffleMode = MutableLiveData(PLAYER_SHUFFLE_MODE_OFF)
     val shuffleMode: LiveData<Boolean> = _shuffleMode
-    private val _alarmMode = MutableLiveData<Boolean>(false)
+    private val _alarmMode = MutableLiveData(false)
     val alarmMode: LiveData<Boolean> = _alarmMode
-
-    private var alarmJob: Job? = null
-    private val _isFavorite = MutableLiveData<Boolean>(_currentSong.value?.isFavorite?:false)
+    private val _isFavorite = MutableLiveData(false)
     val isFavorite: LiveData<Boolean> = _isFavorite
 
+    private var alarmJob: Job? = null
     private var isLyricLoaded = false
     private var lyricText = "No lyric available"
 
@@ -93,6 +91,9 @@ class SongPlayerViewModel(
             song?.let {
                 Log.d("SongPlayerViewModel", it.toString())
                 _currentSong.value = it
+                viewModelScope.launch {
+                    _isFavorite.postValue(playlistRepository.isSongInFavoritePlaylist(it))
+                }
             } ?: run {
                 Log.e("SongPlayerViewModel", "Current song is null")
             }
@@ -144,12 +145,9 @@ class SongPlayerViewModel(
         }
     }
 
-    fun setIsFavorite() {
-        _currentSong.value!!.isFavorite = !(_currentSong.value!!.isFavorite)
-        _isFavorite.value = _currentSong.value!!.isFavorite
+    fun toggleIsFavorite() {
+        _isFavorite.value = if (_isFavorite.value == null) false else !_isFavorite.value!!
         viewModelScope.launch {
-            val updatedSong = currentSong.value!!.copy(isFavorite = currentSong.value!!.isFavorite)
-            songRepository.updateSong(updatedSong)
             if (_isFavorite.value == true) {
                 playlistRepository.addSongToFavoritePlaylist(currentSong.value!!)
             } else {

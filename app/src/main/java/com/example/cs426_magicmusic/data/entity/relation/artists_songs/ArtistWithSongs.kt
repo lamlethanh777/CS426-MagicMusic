@@ -6,16 +6,6 @@ import androidx.room.Relation
 import com.example.cs426_magicmusic.data.entity.Artist
 import com.example.cs426_magicmusic.data.entity.Song
 
-//data class ArtistWithSongs(
-//    @Embedded val artist: Artist,
-//    @Relation(
-//        parentColumn = "artistId",
-//        entityColumn = "songId",
-//        associateBy = Junction(ArtistSong::class)
-//    )
-//    val songs: List<Song>
-//)
-
 data class ArtistWithSongs(
     @Embedded val artist: Artist,
     @Relation(

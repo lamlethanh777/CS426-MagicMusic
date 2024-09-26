@@ -6,8 +6,8 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
-import com.example.cs426_magicmusic.data.entity.relation.playlists_songs.PlaylistSong
 import com.example.cs426_magicmusic.data.entity.Song
+import com.example.cs426_magicmusic.data.entity.relation.playlists_songs.PlaylistSong
 
 @Dao
 interface PlaylistSongDao {
@@ -55,4 +55,10 @@ interface PlaylistSongDao {
                 " ORDER BY songs.artistNames"
     )
     suspend fun fetchSongsInPlaylistOrderByArtistNames(playlistName: String): List<Song>
+
+    @Query(
+        "SELECT COUNT(*) FROM playlists_songs" +
+                " WHERE playlists_songs.playlistName = :favoritePlaylistName AND songPath = :path"
+    )
+    suspend fun isSongInPlaylist(favoritePlaylistName: String, path: String): Int?
 }

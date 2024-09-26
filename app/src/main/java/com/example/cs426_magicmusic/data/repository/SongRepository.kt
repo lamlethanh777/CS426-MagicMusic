@@ -8,10 +8,6 @@ class SongRepository (private val appDatabase: AppDatabase) {
         return appDatabase.songDao().fetchSongs()
     }
 
-    suspend fun fetchSongByTitle(songTitle: String): Song? {
-        return appDatabase.songDao().fetchSongByTitle(songTitle)
-    }
-
     suspend fun fetchSongsOrderByTitle(): List<Song> {
         return appDatabase.songDao().fetchSongsOrderByTitle()
     }
@@ -22,10 +18,6 @@ class SongRepository (private val appDatabase: AppDatabase) {
 
     suspend fun insertAllSongs(songs: List<Song>) {
         appDatabase.songDao().insertAll(*songs.map { it }.toTypedArray())
-    }
-
-    suspend fun insertSong(song: Song) {
-        appDatabase.songDao().insert(song)
     }
 
     suspend fun updateSong(song: Song) {
@@ -42,10 +34,6 @@ class SongRepository (private val appDatabase: AppDatabase) {
 
     suspend fun deleteSong(song: Song) {
         appDatabase.songDao().delete(song)
-    }
-
-    suspend fun deleteAllSongs() {
-        appDatabase.songDao().deleteAll()
     }
 
     suspend fun deleteSongs(songs: List<Song>) {

@@ -1,21 +1,11 @@
 package com.example.cs426_magicmusic.ui.view.main.library
 
-import androidx.recyclerview.widget.DiffUtil
 import com.example.cs426_magicmusic.data.entity.Artist
 
 class ArtistItemAdapter(
     listenerManager: ListenerManager
 ) : TemplateItemAdapter<Artist>(
-    listenerManager,
-    object : DiffUtil.ItemCallback<Artist>() {
-        override fun areItemsTheSame(oldItem: Artist, newItem: Artist): Boolean {
-            return oldItem.artistName == newItem.artistName
-        }
-
-        override fun areContentsTheSame(oldItem: Artist, newItem: Artist): Boolean {
-            return oldItem == newItem
-        }
-    }
+    listenerManager
 ) {
     override fun getTitle(item: Any?): String {
         return (item as Artist).artistName

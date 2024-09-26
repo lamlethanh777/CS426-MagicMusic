@@ -19,23 +19,29 @@
             android:textSize="24sp"
             android:textAlignment="center"
             android:textStyle="bold"
-            tools:ignore="HardcodedText" />
+            tools:ignore="HardcodedText"
+            android:layout_marginVertical="12dp"/>
 
-        <EditText
-            android:id="@+id/inputText"
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Enter your text"
-            tools:ignore="TouchTargetSizeCheck" />
+            android:hint="Enter your text">
+            <com.google.android.material.textfield.TextInputEditText
+                android:gravity="top"
+                android:id="@+id/inputText"
+                android:layout_width="match_parent"
+                android:layout_height="128dp"
+                tools:ignore="TouchTargetSizeCheck" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-        <Switch
+        <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/instrumentalSwitch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Instrumental"
             android:paddingTop="5dp"
             android:paddingBottom="10dp"
-
+            app:thumbTint="@color/link_water"
             tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
 
         <LinearLayout
@@ -119,13 +125,14 @@
 
         </LinearLayout>
 
-        <Switch
+        <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/lyricSwitch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
             android:layout_gravity="center_vertical"
             android:text="Lyric"
+            app:thumbTint="@color/link_water"
             tools:ignore="TouchTargetSizeCheck" />
 
         <TextView
@@ -135,12 +142,16 @@
             android:text=""
             android:visibility="visible"/>
 
-        <ProgressBar
+        <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/progressBar"
-            style="@android:style/Widget.ProgressBar.Horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:visibility="gone"/>
+            android:layout_marginTop="8dp"
+            app:trackThickness="20dp"
+            app:trackCornerRadius="10dp"
+            android:visibility="visible"
+            app:indicatorColor="@color/black"
+            app:trackColor="@color/link_water" />
 
         <ScrollView
             android:layout_width="match_parent"

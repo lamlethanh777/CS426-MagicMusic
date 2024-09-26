@@ -35,7 +35,11 @@ import com.example.cs426_magicmusic.data.source.db.synchronize.LocalDBSynchroniz
 import com.example.cs426_magicmusic.others.Constants.ACTION_PLAY_NEW_SONG
 import com.example.cs426_magicmusic.others.Constants.INTENT_KEY_NEW_SONG_LIST
 import com.example.cs426_magicmusic.others.Constants.INTENT_KEY_SONG_INDEX
-import com.example.cs426_magicmusic.ui.view.songplayer.SongPlayerActivity
+import com.example.cs426_magicmusic.others.Constants.STRING_ALL_ALBUMS
+import com.example.cs426_magicmusic.others.Constants.STRING_ALL_ARTISTS
+import com.example.cs426_magicmusic.others.Constants.STRING_ALL_PLAYLISTS
+import com.example.cs426_magicmusic.others.Constants.STRING_ALL_SONGS
+import com.example.cs426_magicmusic.ui.view.song_player.SongPlayerActivity
 import com.example.cs426_magicmusic.ui.viewmodel.GenericViewModelFactory
 import com.example.cs426_magicmusic.ui.viewmodel.LibraryViewModel
 import kotlinx.coroutines.launch
@@ -47,7 +51,6 @@ class LibraryFragment : Fragment() {
     private var playlistItemAdapter: PlaylistItemAdapter? = null
     private var displayOptionAdapter: DisplayOptionAdapter? = null
     private var listenerManager = ListenerManager()
-    private var currentSongList = mutableListOf<Song>()
     private var currentPlaylist: Playlist? = null
 
     private lateinit var lastFetchAction: (() -> Unit)
@@ -71,10 +74,10 @@ class LibraryFragment : Fragment() {
 
     private fun initViewModel() {
         val appDatabase = AppDatabase.getDatabase(requireContext())
-        var songRepository = SongRepository(appDatabase)
-        var albumRepository = AlbumRepository(appDatabase)
-        var artistRepository = ArtistRepository(appDatabase)
-        var playlistRepository = PlaylistRepository(appDatabase)
+        val songRepository = SongRepository(appDatabase)
+        val albumRepository = AlbumRepository(appDatabase)
+        val artistRepository = ArtistRepository(appDatabase)
+        val playlistRepository = PlaylistRepository(appDatabase)
 
         LocalDBSynchronizer.setupRepositories(
             albumRepository, artistRepository, songRepository, playlistRepository
@@ -159,7 +162,8 @@ class LibraryFragment : Fragment() {
             val addButton = dialogView.findViewById<Button>(R.id.add_song_button)
             val cancelButton = dialogView.findViewById<Button>(R.id.add_song_cancel_button)
 
-            textView.text = "Add song to playlist:\n${currentPlaylist!!.playlistName}"
+            val placeholder = "Add song to playlist:\n${currentPlaylist!!.playlistName}"
+            textView.text = placeholder
 
             val selectedSongs = mutableListOf<Song>()
             val songAdapter = SearchSongPlaylistAdapter { song ->
@@ -231,24 +235,29 @@ class LibraryFragment : Fragment() {
     }
 
     private fun subscribeToObservers() {
+        var placeholder: String
         libraryViewModel.songs.observe(viewLifecycleOwner) {
             songItemAdapter?.itemList = it
-            listNumber.text = "${it.size} songs"
+            placeholder = "${it.size} songs"
+            listNumber.text = placeholder
             musicListRecyclerView.scrollToPosition(0)
         }
         libraryViewModel.albums.observe(viewLifecycleOwner) {
             albumItemAdapter?.itemList = it
-            listNumber.text = "${it.size} albums"
+            placeholder = "${it.size} albums"
+            listNumber.text = placeholder
             musicListRecyclerView.scrollToPosition(0)
         }
         libraryViewModel.artists.observe(viewLifecycleOwner) {
             artistItemAdapter?.itemList = it
-            listNumber.text = "${it.size} artists"
+            placeholder = "${it.size} artists"
+            listNumber.text = placeholder
             musicListRecyclerView.scrollToPosition(0)
         }
         libraryViewModel.playlists.observe(viewLifecycleOwner) {
             playlistItemAdapter?.itemList = it
-            listNumber.text = "${it.size} playlists"
+            placeholder = "${it.size} playlists"
+            listNumber.text = placeholder
             musicListRecyclerView.scrollToPosition(0)
         }
 
@@ -334,7 +343,7 @@ class LibraryFragment : Fragment() {
                 lastFetchAction = { libraryViewModel.fetchSongs() }
                 musicListRecyclerView.adapter = songItemAdapter
                 popupButton.setOnClickListener { popupSongs.invoke() }
-                listTitle.text = "All songs"
+                listTitle.text = STRING_ALL_SONGS
                 addPlaylistButton.visibility = View.INVISIBLE
                 addSongToPlaylistButton.visibility = View.INVISIBLE
                 currentPlaylist = null
@@ -344,7 +353,7 @@ class LibraryFragment : Fragment() {
                 lastFetchAction = { libraryViewModel.fetchAllAlbums() }
                 musicListRecyclerView.adapter = albumItemAdapter
                 popupButton.setOnClickListener { popupAlbums.invoke() }
-                listTitle.text = "All albums"
+                listTitle.text = STRING_ALL_ALBUMS
                 addPlaylistButton.visibility = View.INVISIBLE
                 addSongToPlaylistButton.visibility = View.INVISIBLE
                 currentPlaylist = null
@@ -354,7 +363,7 @@ class LibraryFragment : Fragment() {
                 lastFetchAction = { libraryViewModel.fetchAllArtists() }
                 musicListRecyclerView.adapter = artistItemAdapter
                 popupButton.setOnClickListener { popupArtists.invoke() }
-                listTitle.text = "All artists"
+                listTitle.text = STRING_ALL_ARTISTS
                 addPlaylistButton.visibility = View.INVISIBLE
                 addSongToPlaylistButton.visibility = View.INVISIBLE
                 currentPlaylist = null
@@ -364,7 +373,7 @@ class LibraryFragment : Fragment() {
                 lastFetchAction = { libraryViewModel.fetchAllPlaylists() }
                 musicListRecyclerView.adapter = playlistItemAdapter
                 popupButton.setOnClickListener { popupPlaylists.invoke() }
-                listTitle.text = "All playlists"
+                listTitle.text = STRING_ALL_PLAYLISTS
                 addPlaylistButton.visibility = View.VISIBLE
                 addSongToPlaylistButton.visibility = View.INVISIBLE
                 currentPlaylist = null
@@ -496,7 +505,7 @@ class LibraryFragment : Fragment() {
         Log.d("LibraryFragment", "onClickSongItem: ${song?.title}")
 
         // TODO: PRETTY DANGEROUS
-        var intent = Intent(context, SongPlayerActivity::class.java)
+        val intent = Intent(context, SongPlayerActivity::class.java)
         intent.putExtra(INTENT_KEY_NEW_SONG_LIST, ArrayList(songItemAdapter!!.itemList))
         intent.putExtra(INTENT_KEY_SONG_INDEX, position)
         intent.action = ACTION_PLAY_NEW_SONG
@@ -505,7 +514,8 @@ class LibraryFragment : Fragment() {
 
     private fun onClickAlbumItem(album: Album?) {
         Log.d("LibraryFragment", "onClickAlbumItem: ${album?.albumName}")
-        listTitle.text = "Album: ${album?.albumName}"
+        val placeholder = "Album: ${album?.albumName}"
+        listTitle.text = placeholder
         lastFetchAction = { libraryViewModel.fetchSongsInAlbum(album!!) }
         musicListRecyclerView.adapter = songItemAdapter
         lastFetchAction.invoke()
@@ -514,7 +524,8 @@ class LibraryFragment : Fragment() {
 
     private fun onClickArtistItem(artist: Artist?) {
         Log.d("LibraryFragment", "onClickArtistItem: ${artist?.artistName}")
-        listTitle.text = "Artist: ${artist?.artistName}"
+        val placeholder = "Artist: ${artist?.artistName}"
+        listTitle.text = placeholder
         lastFetchAction = { libraryViewModel.fetchSongsOfArtist(artist!!) }
         musicListRecyclerView.adapter = songItemAdapter
         lastFetchAction.invoke()
@@ -523,7 +534,8 @@ class LibraryFragment : Fragment() {
 
     private fun onClickPlaylistItem(playlist: Playlist?) {
         Log.d("LibraryFragment", "onClickPlaylistItem: ${playlist?.playlistName}")
-        listTitle.text = "Playlist: ${playlist?.playlistName}"
+        val placeholder = "Playlist: ${playlist?.playlistName}"
+        listTitle.text = placeholder
         lastFetchAction = { libraryViewModel.fetchSongsInPlaylist(playlist!!) }
         musicListRecyclerView.adapter = songItemAdapter
         lastFetchAction.invoke()
@@ -698,12 +710,6 @@ class LibraryFragment : Fragment() {
 
     companion object {
         @JvmStatic
-        fun newInstance() =
-            LibraryFragment().apply {
-//                arguments = Bundle().apply {
-//                    putString(ARG_PARAM1, param1)
-//                    putString(ARG_PARAM2, param2)
-//                }
-            }
+        fun newInstance() = LibraryFragment()
     }
 }

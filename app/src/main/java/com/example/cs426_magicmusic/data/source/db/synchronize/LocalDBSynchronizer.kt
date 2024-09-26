@@ -96,7 +96,7 @@ object LocalDBSynchronizer {
                                 ?: cursor.getString(albumIndex) ?: STRING_UNKNOWN_ALBUM
                         val duration =
                             retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                                ?.toLong() ?: cursor.getLong(durationIndex) ?: 0L
+                                ?.toLong() ?: cursor.getLong(durationIndex)
 
                         if (artistNames == STRING_UNKNOWN_ARTIST) {
                             artistNames = STRING_DEFAULT_ARTIST_NAME
@@ -160,6 +160,13 @@ object LocalDBSynchronizer {
         Log.d(
             "LocalDBSynchronizer", "Fetched albums from local storage: ${_albumsWithSongsList.size}"
         )
+        for ((album, songs) in _albumsWithSongsList) {
+            Log.d("LocalDBSynchronizer", "Album: ${album.albumName}")  // Assuming Album has a 'name' property
+            for (song in songs) {
+                Log.d("LocalDBSynchronizer", "  Song: ${song.title}")  // Assuming Song has a 'title' property
+            }
+        }
+
         Log.d(
             "LocalDBSynchronizer",
             "Fetched artists from local storage: ${_artistWithSongsList.size}"
@@ -209,18 +216,53 @@ object LocalDBSynchronizer {
             currentArtistsInDb.none { it.artistName == artist.artistName }
         }
 
-        Log.d("LocalDBSynchronizer", "New albums to add: ${newAlbums.size}")
-        Log.d("LocalDBSynchronizer", "New artists to add: ${newArtists.size}")
-
-        // Insert new albums and artists
+        // Insert new albums
         albumRepository.insertAllAlbumsWithSongs(newAlbums.associateWith { _albumsWithSongsList[it]!! }
             .toMutableMap())
+
+        // Process existing album
+        for ((album, songs) in _albumsWithSongsList) {
+            val existingAlbum = currentAlbumsInDb.find { it.albumName == album.albumName }
+
+            if (existingAlbum == null) {
+                continue
+            }
+
+            // If the album exists, update it by adding the new songs
+            val existingSongsInAlbum = albumRepository.fetchSongsInAlbum(existingAlbum.albumName)
+            val newSongsForAlbum = songs.filter { newSong ->
+                existingSongsInAlbum.none { it.path == newSong.path }
+            }
+            if (newSongsForAlbum.isNotEmpty()) {
+                albumRepository.addSongsToAlbum(existingAlbum, newSongsForAlbum)
+            }
+        }
+
+
+        // Insert new artist
         artistRepository.insertAllArtistsWithSongs(newArtists.associateWith { _artistWithSongsList[it]!! }
             .toMutableMap())
+
+        // Process existing artist
+        for ((artist, songs) in _artistWithSongsList) {
+            val existingArtist = currentArtistsInDb.find { it.artistName == artist.artistName }
+
+            if (existingArtist == null) {
+                continue
+            }
+
+            // If the artist exists, update it by adding the new songs
+            val existingSongsForArtist = artistRepository.fetchSongsOfArtist(existingArtist.artistName)
+            val newSongsForArtist = songs.filter { newSong ->
+                existingSongsForArtist.none { it.path == newSong.path }
+            }
+            if (newSongsForArtist.isNotEmpty()) {
+                artistRepository.addSongsToArtist(existingArtist, newSongsForArtist)
+            }
+        }
 
         // Log the final state of the database
         Log.d("LocalDBSynchronizer", "Songs after sync: ${songRepository.fetchSongs().size}")
         Log.d("LocalDBSynchronizer", "Albums after sync: ${albumRepository.fetchAlbums().size}")
-        Log.d("LocalDBSynchronizer", "Artists after sync: ${artistRepository.fetchArtists().size}")
     }
 }
