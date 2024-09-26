@@ -19,7 +19,10 @@ import com.example.cs426_magicmusic.utils.LyricUtility
 import com.example.cs426_magicmusic.ui.viewmodel.GenerateAudioViewModel
 import com.example.cs426_magicmusic.R
 import com.example.cs426_magicmusic.others.Constants.DEFAULT_APPLICATION_AUDIO_PATH
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.switchmaterial.SwitchMaterial
+import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -30,15 +33,15 @@ class GenerateAudioFragment : Fragment() {
     private lateinit var viewModel: GenerateAudioViewModel
     private lateinit var generateButton: ImageButton
     private lateinit var getButton: ImageButton
-    private lateinit var instrumentalSwitch: Switch
-    private lateinit var lyricSwitch: Switch
+    private lateinit var instrumentalSwitch: SwitchMaterial
+    private lateinit var lyricSwitch: SwitchMaterial
     private lateinit var statusText: TextView
-    private lateinit var progressBar: ProgressBar
+    private lateinit var progressBar: LinearProgressIndicator
     private lateinit var newButton: Button
     private lateinit var playButton: ImageButton
     private lateinit var swapButton: ImageButton
     private lateinit var seekBar: SeekBar
-    private lateinit var inputText: EditText
+    private lateinit var inputText: TextInputEditText
     private lateinit var lyricTextView: TextView
 
     private var playSongJob: Job? = null
