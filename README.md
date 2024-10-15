@@ -32,7 +32,7 @@ MagicMusic is here to make your music experience more personal and enjoyable. Wh
 
 ## Demo video
 
-Here is the demo video of our project on Youtube: ![CS426 - MagicMusic](https://www.youtube.com/watch?v=-f9beg5W-ig)
+Here is the demo video of our project on Youtube: [CS426 - MagicMusic](https://www.youtube.com/watch?v=-f9beg5W-ig)
 
 ## Contributors
 - Le Nguyen Minh Hieu (22125028)
